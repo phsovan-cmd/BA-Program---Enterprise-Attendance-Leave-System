@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Kantumruy Pro', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/* Custom smooth scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print styles for Monthly Report */
+@media print {
+  nav, button, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-area {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* 3D Notification Animation & Effects */
+@keyframes popIn3D {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) rotateX(-28deg) translateY(-40px) translateZ(-60px) scale(0.82);
+  }
+  65% {
+    opacity: 1;
+    transform: perspective(1000px) rotateX(6deg) translateY(4px) translateZ(10px) scale(1.02);
+  }
+  85% {
+    transform: perspective(1000px) rotateX(-2deg) translateY(-1px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1000px) rotateX(0deg) translateY(0) translateZ(0) scale(1);
+  }
+}
+
+.animate-pop-in-3d {
+  animation: popIn3D 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toast-3d {
+  transform-style: preserve-3d;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(14px);
+}
+
+.toast-3d:hover {
+  transform: perspective(1000px) translateY(-4px) translateZ(8px) scale(1.018);
+}
+
+.toast-3d-success {
+  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%);
+  border: 1px solid #6ee7b7;
+  border-bottom: 4px solid #059669;
+  box-shadow: 
+    0 22px 35px -8px rgba(16, 185, 129, 0.38),
+    0 10px 18px -4px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(16, 185, 129, 0.2);
+}
+
+.toast-3d-error {
+  background: linear-gradient(145deg, #ffffff 0%, #fff1f2 100%);
+  border: 1px solid #fca5a5;
+  border-bottom: 4px solid #e11d48;
+  box-shadow: 
+    0 22px 35px -8px rgba(244, 63, 94, 0.38),
+    0 10px 18px -4px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(244, 63, 94, 0.2);
+}
+
+.toast-3d-info {
+  background: linear-gradient(145deg, #ffffff 0%, #eef2ff 100%);
+  border: 1px solid #a5b4fc;
+  border-bottom: 4px solid #4f46e5;
+  box-shadow: 
+    0 22px 35px -8px rgba(99, 102, 241, 0.38),
+    0 10px 18px -4px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(99, 102, 241, 0.2);
+}
+
+.icon-box-3d {
+  box-shadow: 
+    0 8px 14px -3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -3px 4px 0 rgba(0, 0, 0, 0.25);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.18);
+}
+

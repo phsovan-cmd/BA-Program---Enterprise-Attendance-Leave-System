@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Noto Sans Khmer', 'Kantumruy Pro', 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Custom smooth scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print styles for Monthly Report */
+@media print {
+  nav, button, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-area {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* 3D Notification Animation & Effects */
+@keyframes popIn3D {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) rotateX(-28deg) translateY(-40px) translateZ(-60px) scale(0.82);
+  }
+  65% {
+    opacity: 1;
+    transform: perspective(1000px) rotateX(6deg) translateY(4px) translateZ(10px) scale(1.02);
+  }
+  85% {
+    transform: perspective(1000px) rotateX(-2deg) translateY(-1px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1000px) rotateX(0deg) translateY(0) translateZ(0) scale(1);
+  }
+}
+
+.animate-pop-in-3d {
+  animation: popIn3D 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.toast-3d {
+  transform-style: preserve-3d;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(14px);
+}
+
+.toast-3d:hover {
+  transform: perspective(1000px) translateY(-4px) translateZ(8px) scale(1.018);
+}
+
+.toast-3d-success {
+  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%);
+  border: 1px solid #6ee7b7;
+  border-bottom: 4px solid #059669;
+  box-shadow: 
+    0 22px 35px -8px rgba(16, 185, 129, 0.38),
+    0 10px 18px -4px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(16, 185, 129, 0.2);
+}
+
+.toast-3d-error {
+  background: linear-gradient(145deg, #ffffff 0%, #fff1f2 100%);
+  border: 1px solid #fca5a5;
+  border-bottom: 4px solid #e11d48;
+  box-shadow: 
+    0 22px 35px -8px rgba(244, 63, 94, 0.38),
+    0 10px 18px -4px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(244, 63, 94, 0.2);
+}
+
+.toast-3d-info {
+  background: linear-gradient(145deg, #ffffff 0%, #eef2ff 100%);
+  border: 1px solid #a5b4fc;
+  border-bottom: 4px solid #4f46e5;
+  box-shadow: 
+    0 22px 35px -8px rgba(99, 102, 241, 0.38),
+    0 10px 18px -4px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 4px 0 rgba(99, 102, 241, 0.2);
+}
+
+.icon-box-3d {
+  box-shadow: 
+    0 8px 14px -3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -3px 4px 0 rgba(0, 0, 0, 0.25);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.18);
+}
+
+
+/* BA Program visual consistency – Morea-inspired navy, rose and indigo */
+:root {
+  --ba-navy: #151b2e;
+  --ba-pink: #db2777;
+  --ba-pink-soft: #fdf2f8;
+  --ba-indigo: #4f46e5;
+  --ba-border: #e9e9f2;
+}
+body { background-color: #f7f8fc; color: #243049; }
+#ba-main-sidebar button:focus-visible, main button:focus-visible, main input:focus-visible,
+main select:focus-visible { outline: 2px solid var(--ba-pink); outline-offset: 2px; }
+#ba-main-sidebar button:not([aria-current="page"]):hover { background-color: rgba(255,255,255,0.09); }
+main section, main .rounded-3xl { scroll-margin-top: 5rem; }
+@media (max-width: 640px) {
+  main table input[type="number"] { font-variant-numeric: tabular-nums; }
+}
+
+/* Immersive, CSS-only 3D attendance scene. Plays only after backend confirmation. */
+.ba-door-overlay{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 40%,rgba(30,41,59,.75),rgba(2,6,23,.91));backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.ba-door-stage{width:min(370px,100%);padding:25px 20px 23px;border-radius:28px;background:linear-gradient(155deg,#fff 5%,#f7f6ff 85%);text-align:center;box-shadow:0 30px 100px rgba(1,5,25,.55),inset 0 1px 0 #fff;border:1px solid rgba(255,255,255,.9);animation:ba-stage-show .4s cubic-bezier(.2,.9,.2,1) both}
+.ba-3d-world{position:relative;width:235px;height:263px;margin:0 auto;perspective:830px;isolation:isolate;overflow:visible}
+.ba-3d-halo{position:absolute;inset:4% 2% 19%;border-radius:50%;background:radial-gradient(circle,#fbcfe8bb 0%,#c7d2fe78 45%,transparent 70%);filter:blur(10px);animation:ba-halo-breathe 1.4s ease-in-out infinite alternate}
+.ba-3d-floor{position:absolute;width:174px;height:84px;bottom:22px;left:30px;background:linear-gradient(180deg,#cbd5e1aa,#c7d2fe20);transform:rotateX(72deg);border:1px solid #e2e8f0;border-radius:25px;box-shadow:0 12px 18px #33415518}
+.ba-door-frame{position:absolute;left:46px;top:19px;width:144px;height:204px;transform-style:preserve-3d;perspective:950px;border:10px solid #303e65;border-bottom-width:6px;border-radius:9px 9px 3px 3px;background:#dbeafe;box-shadow:11px 8px 0 #172554,13px 16px 22px #17255466,inset 0 0 15px #17255480}
+.ba-door-frame:before{content:'';position:absolute;inset:-14px -15px auto; height:10px;background:linear-gradient(#7280ae,#29385c);border-radius:8px 8px 0 0}
+.ba-door-light{position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse at 56% 35%,#fff9c4 0%,#bae6fd 50%,#6ee7b7 100%);box-shadow:inset 0 0 20px #0f172a44}
+.ba-door-back-wall{position:absolute;bottom:12px;left:10%;width:80%;height:95px;background:linear-gradient(90deg,transparent,#fff9,#fff0);clip-path:polygon(45% 0,80% 0,100% 100%,0 100%);opacity:.85}
+.ba-door-threshold{position:absolute;bottom:-8px;left:-11px;right:-11px;height:12px;background:linear-gradient(#8c9ec3,#263657);border-radius:3px;z-index:8}
+.ba-door-panel{position:absolute;inset:-1px;z-index:5;transform-origin:left center;transform-style:preserve-3d;background:linear-gradient(102deg,#7e1d65 0%,#c02677 29%,#ec4899 70%,#f9a8d4 100%);border:2px solid #70204d;border-radius:3px;box-shadow:inset -7px 1px 15px #fce7f355,inset 6px 0 10px #4a044e55,7px 2px 9px #33415555;animation:ba-door-open3d 3.05s cubic-bezier(.45,.02,.3,.99) both;backface-visibility:visible}
+.ba-door-exit .ba-door-panel{animation-name:ba-door-open3d-exit}
+.ba-door-inset{position:absolute;left:12%;width:74%;border:2px solid #9d226d;border-radius:3px;box-shadow:inset 2px 2px 5px #6b12435e,1px 1px 2px #fbcfe8aa}
+.ba-door-inset-top{top:12%;height:36%}.ba-door-inset-bottom{bottom:10%;height:33%}
+.ba-door-handle{position:absolute;right:8%;top:51%;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff9c2,#eab308 68%,#92400e);box-shadow:0 1px 4px #831843}
+.ba-door-person{position:absolute;bottom:11px;left:46px;z-index:3;width:31px;height:95px;transform-origin:50% 100%;filter:drop-shadow(4px 6px 3px #17255455);animation:ba-walk-in 3.05s ease-in-out both}
+.ba-door-exit .ba-door-person{animation-name:ba-walk-out}
+.ba-person-head{position:absolute;top:0;left:8px;height:18px;width:18px;background:radial-gradient(circle at 37% 30%,#ffd3ae,#d4916e);border-radius:50%;box-shadow:0 -4px 0 #1e293b}
+.ba-person-torso{position:absolute;top:22px;left:4px;width:23px;height:38px;border-radius:8px 8px 3px 3px;background:linear-gradient(90deg,#334155,#64748b 65%,#1e293b)}
+.ba-person-arm{position:absolute;top:24px;width:8px;height:35px;border-radius:5px;background:linear-gradient(#475569,#94a3b8);transform-origin:top center;animation:ba-arm-swing .42s ease-in-out infinite alternate}
+.ba-person-arm-l{left:0}.ba-person-arm-r{right:0;animation-direction:alternate-reverse}
+.ba-person-leg{position:absolute;top:57px;width:10px;height:35px;background:#1e293b;border-radius:3px 3px 5px 5px;transform-origin:top center;animation:ba-leg-step .42s ease-in-out infinite alternate}
+.ba-person-leg-l{left:4px}.ba-person-leg-r{right:4px;animation-direction:alternate-reverse}
+.ba-door-ground-shadow{position:absolute;left:52px;bottom:23px;width:135px;height:18px;background:#17255452;border-radius:50%;filter:blur(9px)}
+.ba-door-direction{position:absolute;bottom:2px;left:0;right:0;color:#6366f1;font-weight:900;font-size:11px;letter-spacing:.22em;opacity:.85}
+.ba-door-success-icon{display:flex;align-items:center;justify-content:center;color:#059669;margin-top:0;animation:ba-check-pop .5s 2.1s backwards}
+.ba-door-title{font-weight:900;font-size:16px;color:#1e293b;margin-top:7px}.ba-door-caption{font-size:12px;color:#64748b;margin-top:6px}
+@keyframes ba-stage-show{from{opacity:0;transform:translateY(20px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes ba-door-open3d{0%,12%{transform:rotateY(0deg)}39%,77%{transform:rotateY(-112deg)}96%,100%{transform:rotateY(0)}}
+@keyframes ba-door-open3d-exit{0%,11%{transform:rotateY(0)}40%,79%{transform:rotateY(-105deg)}97%,100%{transform:rotateY(0)}}
+@keyframes ba-walk-in{0%,21%{transform:translate(63px,17px) scale(1.13);opacity:0}30%{opacity:1}65%{transform:translate(0,0) scale(.7);opacity:1}85%,100%{transform:translate(-5px,-10px) scale(.44);opacity:0}}
+@keyframes ba-walk-out{0%,20%{transform:translate(-5px,-10px) scale(.45);opacity:0}33%{opacity:1}75%{transform:translate(55px,15px) scale(1.11);opacity:1}94%,100%{transform:translate(70px,20px) scale(1.17);opacity:0}}
+@keyframes ba-arm-swing{from{transform:rotate(-22deg)}to{transform:rotate(24deg)}}
+@keyframes ba-leg-step{from{transform:rotate(-21deg)}to{transform:rotate(23deg)}}
+@keyframes ba-halo-breathe{from{opacity:.6;transform:scale(.93)}to{opacity:1;transform:scale(1.08)}}
+@keyframes ba-check-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.ba-door-stage,.ba-door-panel,.ba-door-person,.ba-person-arm,.ba-person-leg,.ba-3d-halo,.ba-door-success-icon{animation:none!important}.ba-door-panel{transform:rotateY(-80deg)}}
+
+/* Responsive typography, controls and safe layout for phones, tablets and desktops. */
+:root { font-size: 16px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html { width: 100%; overflow-x: clip; scroll-behavior: smooth; }
+body, #root { width: 100%; min-width: 0; min-height: 100dvh; margin: 0; }
+body { font-synthesis: none; line-height: 1.55; overflow-wrap: anywhere; }
+button, input, textarea, select { font: inherit; }
+button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+img, svg, video { max-width: 100%; }
+@media (max-width: 639px) {
+  body { line-height: 1.55; }
+  input:not([type='checkbox']):not([type='radio']), select, textarea { font-size: max(16px, 1em); }
+  main { min-width: 0; max-width: 100%; }
+  main > div, main section, main article { min-width: 0; }
+  /* Data tables remain horizontally scrollable within their own containers. */
+  .overflow-x-auto, .overflow-auto { overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+}
+@media (hover: none) and (pointer: coarse) {
+  button, [role='button'] { touch-action: manipulation; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Khmer typography – consistent glyph shaping on phone/tablet/desktop.
+   Keep combining vowel signs and subscripts visible at all sizes. */
+html[lang="km"] body,
+html[lang="km"] button,
+html[lang="km"] input,
+html[lang="km"] select,
+html[lang="km"] textarea,
+html[lang="km"] table,
+html[lang="km"] label {
+  font-family: 'Noto Sans Khmer', 'Kantumruy Pro', 'Inter', system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+html[lang="km"] h1, html[lang="km"] h2, html[lang="km"] h3,
+html[lang="km"] h4, html[lang="km"] p, html[lang="km"] th,
+html[lang="km"] td, html[lang="km"] label,
+html[lang="km"] button, html[lang="km"] span {
+  line-height: 1.75;
+}
+html[lang="km"] h1, html[lang="km"] h2, html[lang="km"] h3,
+html[lang="km"] h4 {
+  letter-spacing: 0;
+}
+html[lang="km"] .tracking-tight,
+html[lang="km"] .tracking-tighter,
+html[lang="km"] .tracking-wide,
+html[lang="km"] .tracking-wider,
+html[lang="km"] .tracking-widest {
+  letter-spacing: normal;
+}
+html[lang="km"] .leading-none,
+html[lang="km"] .leading-tight {
+  line-height: 1.65;
+}
+html[lang="km"] [class*="text-[9px]"],
+html[lang="km"] [class*="text-[10px]"] {
+  font-size: 11px;
+}
+@media (max-width: 640px) {
+  html[lang="km"] h1, html[lang="km"] h2,
+  html[lang="km"] h3, html[lang="km"] h4 { line-height: 1.8; }
+}
+
+/* Consistent mobile viewport and readable Khmer UI */
+html, body, #root { max-width: 100%; min-width: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: clip; }
+button, input, select, textarea { font: inherit; min-width: 0; }
+@media (max-width: 640px) {
+  input, select, textarea { font-size: 16px; }
+  main { min-width: 0; }
+  .mobile-scroll-table { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

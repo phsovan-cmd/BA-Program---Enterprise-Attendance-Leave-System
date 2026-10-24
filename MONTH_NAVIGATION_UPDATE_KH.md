@@ -1,0 +1,1 @@
+Sale Out Checklist និង Stock Count Report: Month navigation ដូច Attendance (Previous, Khmer/English month, Next, ខែបច្ចុប្បន្ន). Frontend UI only.

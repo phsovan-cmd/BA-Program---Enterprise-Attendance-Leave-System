@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="km">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>របាយការណ៍លក់ចេញប្រចាំថ្ងៃ</title>
+    
+    <!-- App & Favicon Icons -->
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/12706/12706002.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/12706/12706002.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="របាយការណ៍លក់">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 98vh;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 18px;
+            color: #2b5a9e;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .header-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        .header-inputs .choices {
+            margin-bottom: 0px !important;
+        }        
+
+        .total-summary {
+            background: #e8eaf6;
+            border-left: 5px solid #5c6bc0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            flex-shrink: 0;
+        }
+
+        .summary-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-sync {
+            width: 100%;
+            padding: 10px;
+            background: #5c6bc0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 0 #394487;
+            transition: all 0.1s;
+            flex-shrink: 0;
+        } 
+
+        .btn-sync:active {
+            box-shadow: 0 0px 0 #394487;
+            transform: translateY(4px);
+        }
+
+        .btn-sync:disabled {
+            background: #ccc;
+            box-shadow: 0 4px 0 #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .products-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 4px;
+            background: #fafafa;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .product-card {
+            background: #fff;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            position: relative;
+            width: 100%;
+        }
+
+        .product-card.has-qty {
+            border-color: #5c6bc0;
+            background-color: #fafdff;
+            box-shadow: 0 4px 10px rgba(92, 107, 192, 0.1);
+        }
+
+        .hot-badge {
+            background: #c62828;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 4px;
+            width: fit-content;
+        }
+
+        @keyframes blink-animation {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .blink-text {
+            animation: blink-animation 1.5s infinite;
+        }
+
+        .product-card img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+
+        .product-title {
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.3;
+            color: #222;
+            margin-bottom: 3px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 28px;
+        }
+
+        .product-price {
+            font-size: 11px;
+            color: #388e3c;
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+
+        .product-sold {
+            font-size: 10px;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f5f5f7;
+            border-radius: 6px;
+            padding: 2px;
+        }
+
+        .counter button {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #fff;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .counter button:disabled {
+            background: #e0e0e0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .counter input {
+            width: 32px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            outline: none;
+        }
+
+        .counter input:disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        #loadingOverlay, #successOverlay, #imageModal, #summaryModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+        }
+
+        #loadingOverlay {
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #successOverlay { 
+            display: none; 
+            background: rgba(255,255,255,0.95); 
+            z-index: 9999; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column; 
+        }
+
+        #imageModal, #summaryModal {
+            display: none; 
+            z-index: 10000; 
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center; 
+            align-items: center;
+        }
+
+        #modalImg {
+            max-width: 90%; 
+            max-height: 80%; 
+            border-radius: 8px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .selected-item {
+            display: flex;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 6px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+
+        .selected-item img {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 8px;
+        }
+
+        .notice-box {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 11px;
+            color: #c62828;
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-3d-detail {
+            background-color: #5c6bc0;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 0 #394487;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+</head>
+<body>
+
+    <div id="loadingOverlay">
+        <img src="https://media.tenor.com/IFsTF_QcYakAAAAM/put-on-a-facial-mask-pudgy-penguins.gif" alt="Loading..." style="max-width: 140px; height: auto;">
+        <p style="color: #5c6bc0; font-size: 13px; margin-top: 8px; font-weight: bold;">កំពុងទាញទិន្នន័យ...</p>
+    </div>
+
+    <div id="successOverlay"> 
+        <img src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyM2pkcDMxb3VpbDhmNG0xc2V4M3R2NnhlMWZxYThheTU4d2J6ZG53ciZlcD12MV9naWZzX3NlYXJjaCZjdD1n/esVaNp1XK3h5vVwa1x/giphy.gif" alt="Success" style="width: 220px; height: auto;">
+        <p style="font-size: 15px; color: #5c6bc0; font-weight: bold; margin-top: 8px;">រក្សាទុកជោគជ័យ!</p>
+    </div>
+
+    <div id="imageModal" onclick="this.style.display='none'">
+        <img id="modalImg" src="" alt="Zoom">
+    </div>
+
+    <div id="summaryModal" onclick="closeSummary()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 style="text-align:center; margin-bottom:10px; font-size: 14px;">បញ្ជីទំនិញដែលបានជ្រើសរើស</h3>
+            <div id="selectedProductsList"></div>
+            <button onclick="closeSummary()" style="width:100%; padding:8px; margin-top:8px; border-radius:6px; border:none; background:#5c6bc0; color:white; font-weight:bold; cursor:pointer;">បិទ</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>របាយការណ៍លក់ចេញប្រចាំថ្ងៃ</h1>
+
+        <div class="header-inputs">
+            <select id="baName">
+                <option value="">ជ្រើសរើសឈ្មោះ BA</option>
+            </select>
+            <select id="province">
+                <option value="">ជ្រើសរើស ខេត្ត</option>
+            </select>
+        </div>
+
+        <div class="total-summary">
+            <div class="summary-header">
+                <div class="summary-row">
+                    <div>មុខទំនិញសរុប: <span id="totalItems">0</span> មុខ</div>
+                    <div>ចំនួនសរុប: <span id="totalQty">0</span> ប្រអប់</div>
+                </div>
+                <div class="summary-row" style="margin-top: 4px; border-top: 1px solid #cbd5e1; padding-top: 4px;">
+                    <div style="color: #2b5a9e; font-weight: bold;">ទឹកប្រាក់: <span id="totalAmountDisplay" style="color: #2b5a9e;">$0.00</span></div>
+                    <button class="btn-3d-detail" onclick="showSummary()">មើលលម្អិត</button>   
+                </div>
+            </div>
+        </div>
+
+        <div class="notice-box" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <input type="checkbox" id="noSalesCheckbox" onchange="toggleNoSales()" style="cursor: pointer;">
+            <label for="noSalesCheckbox" style="cursor: pointer; font-weight: bold;">លក់មិនបាន (No Sales)</label>
+        </div>
+
+        <div class="notice-box">
+            🙏 សូមធ្វើរបាយការណ៍លក់មុនម៉ោងសម្រាក់ពីការងារ 🙏
+        </div>
+
+        <button class="btn-sync" id="syncBtn" onclick="saveAllOrders()">រក្សាទុកទៅ Google Sheets</button>
+
+        <div class="products-wrapper">
+            <div class="products-grid" id="productsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHoqWPB8-c_lbAB9F4xARnB_Y0BAs4s29vyhemVBfHEqiuXDxcYzaGLUOWpwUitovQ/exec';
+
+        let uniqueProducts = [];
+        let orderQuantities = {};
+        let baChoices = null;
+        let provinceChoices = null;
+        let submittedBAsList = [];
+
+        async function loadData() {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await response.json();
+
+                if (!data || data.error) {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    Swal.fire('خطأ', 'គ្មានទិន្នន័យ ឬមានបញ្ហាទាញទិន្នន័យ', 'error');
+                    return;
+                }
+
+                submittedBAsList = data.submittedBAs || [];
+                const baSelect = document.getElementById("baName");
+                const provinceSelect = document.getElementById("province");
+
+                baSelect.innerHTML = '<option value="">ជ្រើសរើសឈ្មោះ BA</option>';
+                provinceSelect.innerHTML = '<option value="">ជ្រើសរើស ខេត្ត</option>';
+
+                data.baNames.forEach(name => { 
+                    let isDone = submittedBAsList.includes(name);
+                    let displayName = isDone ? `${name} ✔️ (បានរក្សាទុករួច)` : name;
+                    baSelect.add(new Option(displayName, name)); 
+                });
+
+                data.provinces.forEach(prov => { 
+                    provinceSelect.add(new Option(prov, prov)); 
+                });
+
+                baChoices = new Choices('#baName', { searchEnabled: true, itemSelectText: '', shouldSort: false });
+                provinceChoices = new Choices('#province', { searchEnabled: true, itemSelectText: '', shouldSort: false });
+
+                // ព្រឹត្តិការណ៍ពេលប្ដូរឈ្មោះ BA ដើម្បី Freeze ឬ Unfreeze ផលិតផល
+                document.getElementById('baName').addEventListener('change', function(e) {
+                    const selectedBA = e.target.value;
+                    const isSubmitted = submittedBAsList.includes(selectedBA);
+                    freezeProductList(isSubmitted);
+                });
+
+                uniqueProducts = data.products || [];
+                uniqueProducts.forEach(item => {
+                    orderQuantities[item.productCode] = 0;
+                });
+
+                document.getElementById('loadingOverlay').style.display = 'none';
+                renderProductGrid();
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('loadingOverlay').style.display = 'none';
+                Swal.fire('បរាជ័យ', 'មិនអាចតភ្ជាប់ទៅកាន់ប្រព័ន្ធទិន្នន័យបានទេ!', 'error');
+            }
+        }
+
+        function renderProductGrid() {
+            const container = document.getElementById("productsContainer");
+            uniqueProducts.sort((a, b) => b.totalSold - a.totalSold);
+            container.innerHTML = "";
+
+            if(uniqueProducts.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#999; padding:20px;">គ្មានផលិតផលបង្ហាញទេ</div>`;
+                return;
+            }
+
+            uniqueProducts.forEach((item, index) => {
+                const currentQty = orderQuantities[item.productCode] || 0;
+                const card = document.createElement("div");
+                card.className = `product-card ${currentQty > 0 ? 'has-qty' : ''}`;
+                
+                const hotBadgeHtml = (index < 5 && item.totalSold > 0) 
+                ? `<div class="hot-badge blink-text">🔥 លក់ដាច់បំផុត</div>` 
+                : '';
+                
+                const imgUrl = item.imageUrl || "https://via.placeholder.com/150";
+                const itemPrice = item.price ? parseFloat(item.price) : 0;
+                const safeId = btoa(encodeURIComponent(item.productCode)).replace(/=/g, '');
+
+                const selectedBA = document.getElementById('baName').value;
+                const isFrozen = submittedBAsList.includes(selectedBA);
+
+                card.innerHTML = `
+                    ${hotBadgeHtml}
+                    <img src="${imgUrl}" alt="Product" onclick="openModal('${imgUrl}')">
+                    <div class="product-title">${item.productCode}</div>
+                    <div class="product-price">$${itemPrice.toFixed(2)}</div>
+                    <div class="product-sold">លក់បាន: ${item.totalSold}</div>
+                    <div class="counter">
+                        <button type="button" class="qty-btn" ${isFrozen ? 'disabled' : ''} onclick="updateQty('${item.productCode.replace(/'/g, "\\'")}', -1)">-</button>
+                        <input type="number" class="qty-input" id="qty_${safeId}" value="${currentQty}" min="0" ${isFrozen ? 'disabled' : ''} oninput="onInputQty('${item.productCode.replace(/'/g, "\\'")}', this.value)" onfocus="this.select()">
+                        <button type="button" class="qty-btn" ${isFrozen ? 'disabled' : ''} onclick="updateQty('${item.productCode.replace(/'/g, "\\'")}', 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateTotalSummary();
+        }
+
+        // មុខងារសម្រាប់ Freeze ឬ Unfreeze បញ្ជីទំនិញ
+        function freezeProductList(isFreeze) {
+            const qtyInputs = document.querySelectorAll('.qty-input');
+            const qtyButtons = document.querySelectorAll('.qty-btn');
+            const syncBtn = document.getElementById('syncBtn');
+            const noSalesCheckbox = document.getElementById('noSalesCheckbox');
+
+            qtyInputs.forEach(input => input.disabled = isFreeze);
+            qtyButtons.forEach(btn => btn.disabled = isFreeze);
+            noSalesCheckbox.disabled = isFreeze;
+            syncBtn.disabled = isFreeze;
+
+            if (isFreeze) {
+                syncBtn.innerHTML = '🔒 បានបញ្ជូនរបាយការណ៍រួចរាល់ (Locked)';
+                syncBtn.style.background = '#9e9e9e';
+                Swal.fire({
+                    icon: 'info',
+                    title: 'បានបញ្ជូនរួចរាល់!',
+                    text: 'ឈ្មោះ BA នេះបានធ្វើរបាយការណ៍រួចហើយ ដូច្នេះមិនអាចកែប្រែទិន្នន័យបានទេ។',
+                    confirmButtonColor: '#5c6bc0'
+                });
+            } else {
+                syncBtn.innerHTML = 'រក្សាទុកទៅ Google Sheets';
+                syncBtn.style.background = '#5c6bc0';
+            }
+        }
+
+        function updateQty(productCode, amount) {
+            let currentQty = orderQuantities[productCode] || 0;
+            currentQty += amount;
+            if (currentQty < 0) currentQty = 0;
+            orderQuantities[productCode] = currentQty;
+            
+            const safeId = btoa(encodeURIComponent(productCode)).replace(/=/g, '');
+            const inputEl = document.getElementById("qty_" + safeId);
+            if(inputEl) {
+                inputEl.value = currentQty;
+                const cardEl = inputEl.closest('.product-card');
+                if(currentQty > 0) cardEl.classList.add('has-qty');
+                else cardEl.classList.remove('has-qty');
+            }
+            updateTotalSummary();
+        }
+
+        function onInputQty(productCode, value) {
+            let intValue = parseInt(value, 10);
+            if (isNaN(intValue) || intValue < 0) intValue = 0;
+            orderQuantities[productCode] = intValue;
+            
+            const safeId = btoa(encodeURIComponent(productCode)).replace(/=/g, '');
+            const inputEl = document.getElementById("qty_" + safeId);
+            if(inputEl) {
+                const cardEl = inputEl.closest('.product-card');
+                if(intValue > 0) cardEl.classList.add('has-qty');
+                else cardEl.classList.remove('has-qty');
+            }
+            updateTotalSummary();
+        }
+
+        function updateTotalSummary() {
+            let activeItemsCount = 0;
+            let totalQuantitiesCount = 0;
+            let totalAmountResult = 0;
+            
+            const listContainer = document.getElementById("selectedProductsList");
+            listContainer.innerHTML = "";
+
+            uniqueProducts.forEach(item => {
+                const qty = orderQuantities[item.productCode] || 0;
+                if (qty > 0) {
+                    activeItemsCount++;
+                    totalQuantitiesCount += qty;
+                    
+                    const price = item.price ? parseFloat(item.price) : 0;
+                    const itemTotal = qty * price;
+                    totalAmountResult += itemTotal;
+
+                    const imgUrl = item.imageUrl || "https://via.placeholder.com/150";
+                    const itemRow = document.createElement("div");
+                    itemRow.className = "selected-item";
+                    itemRow.innerHTML = `
+                        <img src="${imgUrl}" alt="Thumb">
+                        <div style="flex-grow:1; font-size:11px; font-weight:600;">${item.productCode}<br><span style="color:#666; font-size:9px;">តម្លៃ: $${price.toFixed(2)}</span></div>
+                        <div style="font-size:11px; color:#e91e63; font-weight:bold; text-align:right;">${qty} ប្រអប់<br><span style="color:#2e7d32; font-size:10px;">$${itemTotal.toFixed(2)}</span></div>
+                    `;
+                    listContainer.appendChild(itemRow);
+                }
+            });
+
+            document.getElementById("totalItems").innerText = activeItemsCount;
+            document.getElementById("totalQty").innerText = totalQuantitiesCount;
+            document.getElementById("totalAmountDisplay").innerText = "$" + totalAmountResult.toFixed(2);
+        }
+
+        function saveAllOrders() {
+            const baName = document.getElementById('baName').value;
+            const province = document.getElementById('province').value;
+            const isNoSales = document.getElementById('noSalesCheckbox').checked;
+            const syncBtn = document.getElementById('syncBtn');
+
+            if (!baName || !province) {
+                Swal.fire('សូមពិនិត្យឡើងវិញ!', 'សូមជ្រើសរើសឈ្មោះ BA និង ខេត្ត ឱ្យបានត្រឹមត្រូវ!', 'warning');
+                return;
+            }
+
+            const activeOrders = [];
+            if (!isNoSales) {
+                uniqueProducts.forEach(item => {
+                    const qty = orderQuantities[item.productCode] || 0;
+                    if (qty > 0) {
+                        activeOrders.push({
+                            baName: baName,
+                            province: province,
+                            productCode: item.productCode,
+                            quantity: qty,
+                            price: item.price || 0
+                        });
+                    }
+                });
+
+                if (activeOrders.length === 0) {
+                    Swal.fire('សូមពិនិត្យឡើងវិញ!', 'សូមជ្រើសរើសចំនួនផលិតផលយ៉ាងតិច ១ មុខ!', 'warning');
+                    return;
+                }
+            } else {
+                activeOrders.push({
+                    baName: baName,
+                    province: province,
+                    productCode: "NO_SALES",
+                    quantity: 0,
+                    price: 0
+                });
+            }
+
+            syncBtn.disabled = true;
+            syncBtn.innerHTML = '⏳ កំពុងរក្សាទុក...';
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(activeOrders)
+            })
+            .then(() => {
+                document.getElementById('successOverlay').style.display = 'flex';
+                setTimeout(() => location.reload(), 3000);
+            })
+            .catch(error => {
+                console.error(error);
+                Swal.fire('បរាជ័យ', 'ការផ្ញើទិន្នន័យមានបញ្ហា សូមព្យាយាមម្តងទៀត!', 'error');
+                syncBtn.disabled = false;
+                syncBtn.innerText = "រក្សាទុកទៅ Google Sheets";
+            });
+        }
+
+        function toggleNoSales() {
+            const isNoSales = document.getElementById('noSalesCheckbox').checked;
+            const productsContainer = document.getElementById('productsContainer');
+            
+            if (isNoSales) {
+                productsContainer.style.display = 'none';
+                for (let key in orderQuantities) {
+                    orderQuantities[key] = 0;
+                }
+                updateTotalSummary();
+            } else {
+                productsContainer.style.display = 'grid';
+                renderProductGrid();
+            }
+        }
+
+        function openModal(url) {
+            document.getElementById('modalImg').src = url;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function showSummary() {
+            document.getElementById('summaryModal').style.display = 'flex';
+        }
+
+        function closeSummary() {
+            document.getElementById('summaryModal').style.display = 'none';
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+BA Control Google Sheets reporting setup
+
+1. Backup the existing Apps Script first.
+2. Open the existing Google Spreadsheet > Extensions > Apps Script.
+3. Replace old Code.gs with the included Code.gs, Save.
+4. Set Spreadsheet timezone to Asia/Phnom_Penh.
+5. Run setupHorizontalProductReports() from Apps Script, approve permissions.
+6. Deploy > Manage deployments > Edit > New version > Deploy.
+7. Verify that src/services/api.ts GOOGLE_SHEET_API_URL is the same deployed /exec URL.
+8. In the app's product/stock management screen, manually run Sync to Google Sheet to seed the current product balances (Product List, col G); then check Stock In Report.
+9. Existing Actual Stock Report is not updated or required. You may manually delete it only after confirming results.
+
+NOTE: Sale Out Report groups transactions by Date+BA ID and sums quantities. Stock In Report is current stock from Product List, NOT historical stock-in movement. It shows today's latest snapshot by today's Stock In updater; if no today's stock-in transaction exists it displays a System row. Stock is global and can be repeated for different BA updaters. The original Stock In tab stores historical stock movements.
+
+IMPORTANT: App sends Google Sheets POST using no-cors, so its UI does not receive server errors and may say success even if the script failed. Confirm data directly in Google Sheets and Apps Script executions. Never rely on this report as an audited stock ledger before validation.

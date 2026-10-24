@@ -1,0 +1,1 @@
+Telegram Hotline @SovannPheach ត្រូវបានផ្លាស់ទីពី Login Form ទៅ Header ខាងស្ដាំ ជាប់ Icon Install App។ នៅពេល App Install រួច Icon Hotline នៅតែបង្ហាញ។ Link: https://t.me/SovannPheach។ មិនកែ API ឬ Apps Script ទេ។

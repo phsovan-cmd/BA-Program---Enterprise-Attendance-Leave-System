@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BA Program - Standard Enterprise</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet / OpenStreetMap Integration -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'Kantumruy Pro', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' }
+                    },
+                    boxShadow: {
+                        '3d': '0 10px 25px -5px rgba(79, 70, 229, 0.2), 0 8px 10px -6px rgba(79, 70, 229, 0.1)',
+                        '3d-card': '0 20px 30px -5px rgba(0, 0, 0, 0.08), 0 10px 15px -5px rgba(0, 0, 0, 0.04)',
+                        '3d-alert': '0 15px 35px -5px rgba(99, 102, 241, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.6)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        #mapPicker { height: 260px; width: 100%; border-radius: 0.75rem; }
+        .card-3d { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-3d:hover { transform: translateY(-3px); box-shadow: 0 20px 30px -10px rgba(79, 70, 229, 0.2); }
+        .alert-3d {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.8) 100%);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+            border-left: 4px solid #6366f1;
+        }
+     
+        /* ធានាថា container របស់តារាងមានកន្លែង Scroll ស្រួល */
+        .overflow-x-auto {
+            max-height: 600px; /* កម្ពស់តារាងតាមតម្រូវការ */
+            overflow: auto;
+        }
+
+        /* Freeze ក្បាលតារាង (Header ថ្ងៃទី ១ ដល់ ៣១) ជាប់ខាងលើពេល Scroll ចុះក្រោម */
+        #mainTable thead th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f8fafc; /* ពណ៌ផ្ទៃខាងក្រោយក្បាលតារាង */
+        }
+
+        /* Freeze ជួរឈរទី ១ (BA ID & Name) ជាប់ខាងឆ្វេងពេល Scroll ไปស្តាំ */
+        #mainTable th:first-child,
+        #mainTable td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background-color: #ffffff; /* ពណ៌ផ្ទៃខាងក្រោយពេលជាប់នឹងកន្លែង */
+            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.05); /* បង្កើតស្រមោលបន្តិចដើម្បីឱ្យដាច់ពីកន្លែងផ្សេង */
+        }
+
+        /* ករណីក្បាលតារាងជួរបញ្اطعគ្នានៅជ្រុងខាងឆ្វេង (BA ID & Name header) ឱ្យវាមាន z-index ខ្ពស់ជាងគេ */
+        #mainTable thead th:first-child {
+            z-index: 30;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <div id="toastContainer" class="fixed top-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <div id="app" class="flex-grow flex flex-col">
+        <!-- NAVBAR -->
+        <nav id="appHeader" class="hidden bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 shadow-sm">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-500 text-white rounded-xl shadow-3d">
+                            <i data-lucide="box" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-base sm:text-lg text-slate-900 tracking-tight block leading-none">BA Program</span>
+                            <span class="text-[10px] text-slate-500 font-normal">ប្រព័ន្ធគ្រប់គ្រងស្ដង់ដារ</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <button id="installAppBtn" onclick="installApp()" class="hidden items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md transition-all hover:opacity-90">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Install App</span>
+                        </button>
+
+                        <div id="currentUserBadge" class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow" id="userAvatar">U</div>
+                            <div class="text-left hidden sm:block">
+                                <p id="currentUserName" class="text-xs font-semibold text-slate-800 leading-tight">User Name</p>
+                                <p id="currentUserRole" class="text-[10px] text-brand-600 uppercase tracking-wider font-bold">Admin</p>
+                            </div>
+                        </div>
+                        <button onclick="handleLogout()" class="inline-flex items-center gap-1 p-2 sm:px-3 sm:py-2 text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-all shadow-sm border border-rose-200">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">ចាកចេញ</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- AUTH CONTAINER -->
+        <div id="authContainer" class="flex-grow flex items-center justify-center p-3 sm:p-6">
+            <div class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-3d-card border border-white/80 overflow-hidden p-2">
+                <div class="bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 p-5 sm:p-6 text-white text-center relative rounded-2xl shadow-lg mb-3">
+                    <div class="w-12 h-12 mx-auto mb-2.5 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner">
+                        <i data-lucide="box" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h1 id="authTitle" class="text-lg sm:text-xl font-bold tracking-wide">ចូលប្រើប្រាស់ប្រព័ន្ធ</h1>
+                    <p id="authSubtitle" class="text-xs text-indigo-100 mt-0.5">សូមបញ្ចូលអត្តលេខ និងពាក្យសម្ងាត់របស់អ្នក</p>
+                </div>
+
+                <form id="loginForm" onsubmit="handleLogin(event)" class="p-3 sm:p-4 space-y-3.5">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">អត្តលេខ (User ID)</label>
+                        <input type="text" id="loginId" required placeholder="ឧទាហរណ៍: BA00001" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">ពាក្យសម្ងាត់ (Password)</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 shadow-sm">
+                    </div>
+                    <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-sm font-semibold rounded-xl shadow-3d transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span>ចូលប្រព័ន្ធ (Log In)</span>
+                    </button>
+                    <div class="text-center pt-2 border-t border-slate-100">
+                        <p class="text-xs text-slate-600">មិនទាន់មានគណនី? <button type="button" onclick="toggleAuthMode('register')" class="text-brand-600 font-bold hover:underline">ចុះឈ្មោះ</button></p>
+                    </div>
+                </form>
+
+                <form id="registerForm" onsubmit="handleRegister(event)" class="p-3 sm:p-4 space-y-3 hidden">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div><label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">ID *</label><input type="text" id="regId" required class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl"></div>
+                        <div><label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Name *</label><input type="text" id="regName" required class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl"></div>
+                    </div>
+                    <div><label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Password *</label><input type="password" id="regPassword" required class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl"></div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Location *</label>
+                        <input type="text" id="regLocation" required class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl">
+                        <div class="flex gap-2 mt-1.5">
+                            <button type="button" onclick="getGPSLocation('regLocation')" class="flex-1 py-1.5 bg-slate-100 text-xs font-medium rounded-xl border">យក GPS</button>
+                            <button type="button" onclick="openMapModal('regLocation')" class="flex-1 py-1.5 bg-indigo-50 text-brand-700 text-xs font-medium rounded-xl border">ជ្រើស Map</button>
+                        </div>
+                    </div>
+                    <div><label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Start Date *</label><input type="date" id="regStartDate" required class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl"></div>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div><label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Status *</label><select id="regStatus" class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl"><option value="Active">Active</option><option value="Pending">Pending</option></select></div>
+                        <div><label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Type *</label><select id="regType" onchange="checkRegisterTypeSelection()" class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl"><option value="BA Staff">BA Staff</option><option value="Manager">Manager</option><option value="Admin">Admin</option></select></div>
+                    </div>
+                    <div id="regManagerIdContainer">
+                        <label class="block text-[11px] font-semibold text-slate-700 uppercase mb-1">Manager ID *</label>
+                        <select id="regManagerId" required class="w-full px-3 py-2 text-sm bg-slate-50 border rounded-xl">
+                            <option value="">-- ជ្រើសរើស Manager ID --</option>
+                            <option value="DTPP1">DTPP1</option><option value="DTPP2">DTPP2</option><option value="DTPP3">DTPP3</option>
+                            <option value="DTKD">DTKD</option><option value="DTPV">DTPV</option><option value="DTKC">DTKC</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 text-white text-sm font-semibold rounded-xl shadow-3d mt-1">បង្កើតគណនី</button>
+                    <div class="text-center pt-1.5 border-t"><p class="text-xs text-slate-600">មានគណនីរួចហើយ? <button type="button" onclick="toggleAuthMode('login')" class="text-brand-600 font-bold hover:underline">ចូលប្រព័ន្ធ</button></p></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <main id="dashboardContainer" class="hidden flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+            
+            <div class="alert-3d p-4 rounded-2xl flex items-start gap-3 shadow-sm relative overflow-hidden">
+                <div class="p-2 bg-indigo-600 text-white rounded-xl shadow-md shrink-0">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                </div>
+                <div class="flex-grow">
+                    ព័ត៌មានប្រព័ន្ធ: មន្ត្រី BA ទាំងអស់តម្រូវឱ្យ Check-In ក្នុងចំងាយ ១០ ម៉ែត្រពីទីតាំងតូប និងគ្រប់គ្រងសំណើច្បាប់តាមស្ដង់ដារ។
+                </div>
+            </div>
+
+            <!-- DASHBOARD SUMMARY CARDS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white/90 backdrop-blur-xl p-4 rounded-2xl border shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><i data-lucide="log-in" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="text-[11px] text-slate-500 font-medium">Check-In ប្រចាំខែ</p>
+                        <h4 id="statCheckInCount" class="text-base sm:text-lg font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+                <div class="bg-white/90 backdrop-blur-xl p-4 rounded-2xl border shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="text-[11px] text-slate-500 font-medium">Check-Out ប្រចាំខែ</p>
+                        <h4 id="statCheckOutCount" class="text-base sm:text-lg font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+                <div class="bg-white/90 backdrop-blur-xl p-4 rounded-2xl border shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-pink-50 text-pink-600 rounded-xl"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="text-[11px] text-slate-500 font-medium">សំណើច្បាប់ប្រចាំខែ</p>
+                        <h4 id="statTotalLeaves" class="text-base sm:text-lg font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+                <div class="bg-white/90 backdrop-blur-xl p-4 rounded-2xl border shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="clock" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="text-[11px] text-slate-500 font-medium">កំពុងរង់ចាំ (Pending)</p>
+                        <h4 id="statPendingLeaves" class="text-base sm:text-lg font-bold text-slate-800">0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Widgets Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Check-in / Check-out Panel -->
+                <div class="bg-white/90 backdrop-blur-xl p-4 sm:p-6 rounded-3xl border shadow-3d-card card-3d flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                                <div class="p-2 bg-brand-50 text-brand-600 rounded-xl"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
+                                <span>ចុះវត្តមាន (Check-In / Out)</span>
+                            </h3>
+                            <span id="checkInStatusBadge" class="text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold">មិនទាន់ Check-In</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-4">អ្នកត្រូវស្ថិតក្នុងចំចម្ងាយ <b>១០ ម៉ែត្រ</b> ពីទីតាំងតូប។</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                        <button onclick="performCheckIn('IN')" class="py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-xs sm:text-sm rounded-2xl shadow flex items-center justify-center gap-1.5"><i data-lucide="log-in" class="w-4 h-4"></i><span>Check In</span></button>
+                        <button onclick="performCheckIn('OUT')" class="py-2.5 sm:py-3 bg-gradient-to-r from-rose-600 to-pink-600 text-white font-semibold text-xs sm:text-sm rounded-2xl shadow flex items-center justify-center gap-1.5"><i data-lucide="log-out" class="w-4 h-4"></i><span>Check Out</span></button>
+                    </div>
+                </div>
+
+                <!-- Leave Requests Button Types (9 Types) -->
+                <div class="lg:col-span-2 bg-white/90 backdrop-blur-xl p-4 sm:p-6 rounded-3xl border shadow-3d-card card-3d">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                            <div class="p-2 bg-pink-50 text-pink-600 rounded-xl"><i data-lucide="calendar-off" class="w-4 h-4"></i></div>
+                            <span>ស្នើសុំច្បាប់សម្រាក (Leave Types)</span>
+                        </h3>
+                        <span class="text-[10px] sm:text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg">9 ប្រភេទ</span>
+                    </div>
+                    <div class="grid grid-cols-3 sm:grid-cols-9 gap-1.5 sm:gap-2">
+                        <button onclick="openLeaveModal('TI')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">TI</button>
+                        <button onclick="openLeaveModal('CS')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">CS</button>
+                        <button onclick="openLeaveModal('AL')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">AL</button>
+                        <button onclick="openLeaveModal('UL')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">UL</button>
+                        <button onclick="openLeaveModal('SL')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">SL</button>
+                        <button onclick="openLeaveModal('SPL')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">SPL</button>
+                        <button onclick="openLeaveModal('C-O')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">C-O</button>
+                        <button onclick="openLeaveModal('PH')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">PH</button>
+                        <button onclick="openLeaveModal('Off')" class="py-2.5 sm:py-3 border bg-gradient-to-b from-pink-50/50 to-white text-pink-600 font-bold rounded-xl text-xs sm:text-sm hover:bg-pink-50">Off</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table & Switch Tabs Section -->
+            <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-3d-card border overflow-hidden">
+                <div class="p-4 sm:p-6 border-b flex flex-col gap-3 sm:flex-row sm:items-center justify-between">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <span id="tableTitleText">របាយការណ៍ការងារប្រចាំថ្ងៃ តាម User BA Staff (ប្រចាំខែ)</span>
+                            <span class="text-[10px] sm:text-xs bg-brand-50 text-brand-700 px-2.5 py-0.5 rounded-xl font-bold" id="recordCountBadge">0 Records</span>
+                        </h2>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+                            <button id="btnTabStaff" onclick="switchMainTab('staff')" class="flex-1 sm:flex-initial px-3 py-1.5 text-slate-700 text-xs font-semibold rounded-lg transition">បុគ្គលិក</button>
+                            <button id="btnTabLeave" onclick="switchMainTab('leave')" class="flex-1 sm:flex-initial px-3 py-1.5 text-slate-700 text-xs font-semibold rounded-lg transition">សំណើច្បាប់</button>
+                            <button id="btnTabReport" onclick="switchMainTab('report')" class="flex-1 sm:flex-initial px-3 py-1.5 bg-brand-600 text-white text-xs font-semibold rounded-lg shadow-sm transition">របាយការណ៍ប្រចាំខែ</button>
+                        </div>
+                        <input type="text" id="searchInput" oninput="renderTableData()" placeholder="ស្វែងរក ID ឬ ឈ្មោះ..." class="flex-1 sm:w-48 px-3 py-2 text-xs sm:text-sm bg-slate-50 border rounded-xl">
+                        
+                        <select id="roleFilter" onchange="renderTableData()" class="px-2.5 py-2 text-xs bg-slate-50 border rounded-xl hidden">
+                            <option value="ALL">គ្រប់ Type</option><option value="Admin">Admin</option><option value="Manager">Manager</option><option value="BA Staff">BA Staff</option>
+                        </select>
+                        <select id="leaveTypeFilter" onchange="renderTableData()" class="px-2.5 py-2 text-xs bg-slate-50 border rounded-xl hidden">
+                            <option value="ALL">គ្រប់ Status</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option>
+                        </select>
+
+                        <button id="btnAddUser" onclick="openAddUserModal()" class="px-3.5 py-2 bg-brand-600 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md flex items-center gap-1">
+                            <i data-lucide="plus" class="w-4 h-4"></i><span>បន្ថែម</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs sm:text-sm border-collapse" id="mainTable">
+    <!-- ទិន្នន័យតារាង -->
+</table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL FOR USER -->
+    <div id="userModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border p-2">
+            <div class="px-5 py-3.5 bg-slate-50 border-b flex justify-between items-center rounded-2xl">
+                <h3 id="modalTitle" class="font-bold text-slate-800 text-sm sm:text-base">បន្ថែមបុគ្គលិកថ្មី</h3>
+                <button onclick="closeUserModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="modalForm" onsubmit="handleSaveModalUser(event)" class="p-4 sm:p-5 space-y-3">
+                <input type="hidden" id="modalEditIndex" value="-1">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-[11px] font-semibold mb-1">ID *</label><input type="text" id="mId" required class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                    <div><label class="block text-[11px] font-semibold mb-1">Name *</label><input type="text" id="mName" required class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                </div>
+                <div><label class="block text-[11px] font-semibold mb-1">Password *</label><input type="password" id="mPassword" placeholder="ទុកទំនេរប្រសិនបើមិនប្តូរ" class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                <div><label class="block text-[11px] font-semibold mb-1">Location *</label><input type="text" id="mLocation" required class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-[11px] font-semibold mb-1">Start Date *</label><input type="date" id="mStartDate" required class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                    <div><label class="block text-[11px] font-semibold mb-1">Status *</label><select id="mStatus" class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"><option value="Active">Active</option><option value="Pending">Pending</option><option value="Inactive">Inactive</option></select></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold mb-1">Type *</label>
+                        <select id="mType" onchange="checkUserTypeSelection()" class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm">
+                            <option value="BA Staff">BA Staff</option><option value="Manager">Manager</option><option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div id="managerIdContainer">
+                        <label class="block text-[11px] font-semibold mb-1">Manager ID *</label>
+                        <select id="mManagerId" class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm">
+                            <option value="">-- ជ្រើស Manager ID --</option>
+                            <option value="DTPP1">DTPP1</option><option value="DTPP2">DTPP2</option><option value="DTPP3">DTPP3</option>
+                            <option value="DTKD">DTKD</option><option value="DTPV">DTPV</option><option value="DTKC">DTKC</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeUserModal()" class="px-4 py-2 border rounded-xl text-xs sm:text-sm">បោះបង់</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs sm:text-sm font-semibold">រក្សាទុក</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LEAVE MODAL -->
+    <div id="leaveModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full border p-2">
+            <div class="px-5 py-3.5 bg-slate-50 border-b flex justify-between items-center rounded-2xl">
+                <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                    <span id="leaveModalTypeBadge" class="px-2.5 py-1 bg-pink-100 text-pink-600 rounded-xl text-xs font-bold">AL</span>
+                    <span>ស្នើសុំច្បាប់សម្រាក</span>
+                </h3>
+                <button onclick="closeLeaveModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="handleSubmitLeave(event)" class="p-4 sm:p-5 space-y-3">
+                <input type="hidden" id="leaveTypeInput">
+                <div><label class="block text-[11px] font-semibold mb-1">ចាប់ផ្តើម *</label><input type="date" id="leaveStartDate" required class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                <div><label class="block text-[11px] font-semibold mb-1">បញ្ចប់ *</label><input type="date" id="leaveEndDate" required class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></div>
+                <div><label class="block text-[11px] font-semibold mb-1">មូលហេតុ *</label><textarea id="leaveReason" rows="3" required placeholder="មូលហេតុ..." class="w-full px-3 py-2 border rounded-xl text-xs sm:text-sm"></textarea></div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeLeaveModal()" class="px-4 py-2 border rounded-xl text-xs sm:text-sm">បោះបង់</button>
+                    <button type="submit" class="px-4 py-2 bg-pink-600 text-white rounded-xl text-xs sm:text-sm font-semibold">បញ្ជូនសំណើ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAP MODAL -->
+    <div id="mapModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border p-3">
+            <div class="px-3 py-2.5 flex justify-between items-center border-b">
+                <h3 class="font-bold text-slate-800 text-sm sm:text-base">ជ្រើសរើសទីតាំងលើផែនទី</h3>
+                <button onclick="closeMapModal()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-2"><div id="mapPicker"></div></div>
+            <div class="p-2.5 border-t flex justify-end gap-2">
+                <button type="button" onclick="closeMapModal()" class="px-4 py-2 border rounded-xl text-xs sm:text-sm">បោះបង់</button>
+                <button type="button" onclick="confirmMapLocation()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs sm:text-sm font-semibold">យល់ព្រម</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyK1y4XW4_SCOP3wsyIEhapnj95mXr-xxLCmVHGtyUB5nGOEjalniPxY-Iml61rn5onug/exec";
+
+        let users = [];
+        let leaveRequests = [];
+        let attendanceData = [];
+        let currentUser = null;
+        let currentMainTab = 'report'; 
+        let targetLocationInputId = null;
+        let mapInstance = null, markerInstance = null, selectedCoords = null;
+        let deferredPrompt = null;
+        let myAttendanceHistory = []; 
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('installAppBtn');
+            if (btn) btn.classList.remove('hidden');
+            if (btn) btn.classList.add('inline-flex');
+        });
+
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast("អបអរសាទរ! កម្មវិធីត្រូវបានដំឡើងរួចរាល់។", "success");
+                }
+                deferredPrompt = null;
+                document.getElementById('installAppBtn').classList.add('hidden');
+            } else {
+                showToast("កម្មវិធីនេះត្រូវបានដំឡើងរួច ឬ Browser មិនគាំទ្រ.", "info");
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchUsersFromGoogleSheet();
+            await fetchLeavesFromGoogleSheet();
+            await fetchAttendanceFromGoogleSheet();
+            loadFromStorage();
+            checkSession();
+            lucide.createIcons();
+        });
+
+        async function fetchUsersFromGoogleSheet() {
+            try {
+                const response = await fetch(`${GOOGLE_SHEET_API_URL}?type=get_users`);
+                const data = await response.json();
+                if (data && Array.isArray(data)) {
+                    users = data;
+                    localStorage.setItem('app_users_sheet', JSON.stringify(users));
+                }
+            } catch (e) {
+                const stored = localStorage.getItem('app_users_sheet');
+                if (stored) { try { users = JSON.parse(stored); } catch(err){} }
+            }
+        }
+
+        async function fetchLeavesFromGoogleSheet() {
+            try {
+                const response = await fetch(`${GOOGLE_SHEET_API_URL}?type=get_leaves`);
+                const data = await response.json();
+                if (data && Array.isArray(data)) {
+                    leaveRequests = data; // យកទិន្នន័យថ្មីស្រឡាងពី Sheet មកជំនួស
+                    localStorage.setItem('app_leaves_sheet', JSON.stringify(leaveRequests));
+                    renderTableData(); // สั่ง Refresh តារាងឱ្យបង្ហាញទិន្នន័យថ្មី
+                }
+            } catch (e) {
+                const stored = localStorage.getItem('app_leaves_sheet');
+                if (stored) { try { leaveRequests = JSON.parse(stored); } catch(err){} }
+            }
+        }
+
+        async function fetchAttendanceFromGoogleSheet() {
+            try {
+                const response = await fetch(`${GOOGLE_SHEET_API_URL}?type=get_attendance`);
+                const data = await response.json();
+                if (data && Array.isArray(data)) {
+                    attendanceData = data;
+                    localStorage.setItem('app_attendance_sheet', JSON.stringify(attendanceData));
+                }
+            } catch (e) {
+                const stored = localStorage.getItem('app_attendance_sheet');
+                if (stored) { try { attendanceData = JSON.parse(stored); } catch(err){} }
+            }
+        }
+
+        function loadFromStorage() {
+            const storedLeaves = localStorage.getItem('app_leaves');
+            if (storedLeaves) { try { leaveRequests = JSON.parse(storedLeaves); } catch(e){} }
+            const storedAtt = localStorage.getItem('app_my_attendance');
+            if (storedAtt) { try { myAttendanceHistory = JSON.parse(storedAtt); } catch(e){} }
+            const storedAttSheet = localStorage.getItem('app_attendance_sheet');
+            if (storedAttSheet) { try { attendanceData = JSON.parse(storedAttSheet); } catch(e){} }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('app_leaves', JSON.stringify(leaveRequests));
+            localStorage.setItem('app_my_attendance', JSON.stringify(myAttendanceHistory));
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            let bgClass = type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-rose-600' : 'bg-indigo-600');
+            toast.className = `${bgClass} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold transition-all opacity-0 translate-y-2`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('opacity-0', 'translate-y-2'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function checkSession() {
+            const session = localStorage.getItem('current_session');
+            if (session) {
+                try {
+                    currentUser = JSON.parse(session);
+                    showDashboard();
+                } catch(e) { handleLogout(); }
+            } else {
+                showAuth();
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('authContainer').classList.remove('hidden');
+            document.getElementById('dashboardContainer').classList.add('hidden');
+            document.getElementById('appHeader').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            if (!currentUser) return;
+            document.getElementById('authContainer').classList.add('hidden');
+            document.getElementById('dashboardContainer').classList.remove('hidden');
+            document.getElementById('appHeader').classList.remove('hidden');
+
+            document.getElementById('currentUserName').innerText = currentUser.name;
+            document.getElementById('currentUserRole').innerText = currentUser.type;
+            document.getElementById('userAvatar').innerText = currentUser.name.charAt(0).toUpperCase();
+
+            const btnAdd = document.getElementById('btnAddUser');
+            const roleFilter = document.getElementById('roleFilter');
+
+            if (currentUser.type === 'Admin') {
+                if (btnAdd) btnAdd.style.display = 'flex';
+                if (roleFilter) roleFilter.classList.remove('hidden');
+            } else {
+                if (btnAdd) btnAdd.style.display = 'none';
+                if (roleFilter) roleFilter.classList.add('hidden');
+            }
+
+            updateDashboardSummary();
+            renderTableData();
+        }
+
+        function updateDashboardSummary() {
+            if (!currentUser) return;
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            const userAtt = myAttendanceHistory.filter(a => {
+                if (a.userId !== currentUser.id) return false;
+                const attDate = new Date(a.timestamp);
+                return attDate.getFullYear() === currentYear && attDate.getMonth() === currentMonth;
+            });
+
+            const checkIns = userAtt.filter(a => a.action === 'IN').length;
+            const checkOuts = userAtt.filter(a => a.action === 'OUT').length;
+
+            const userLeaves = leaveRequests.filter(l => {
+                if (currentUser.type === 'BA Staff' && l.userId !== currentUser.id) return false;
+                if (!l.startDate) return false;
+                const leaveDate = new Date(l.startDate);
+                return leaveDate.getFullYear() === currentYear && leaveDate.getMonth() === currentMonth;
+            });
+
+            if(document.getElementById('statCheckInCount')) document.getElementById('statCheckInCount').innerText = checkIns;
+            if(document.getElementById('statCheckOutCount')) document.getElementById('statCheckOutCount').innerText = checkOuts;
+            if(document.getElementById('statTotalLeaves')) document.getElementById('statTotalLeaves').innerText = userLeaves.length;
+            if(document.getElementById('statPendingLeaves')) document.getElementById('statPendingLeaves').innerText = userLeaves.filter(l => l.status === 'Pending').length;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('current_session');
+            currentUser = null;
+            showAuth();
+        }
+
+        function toggleAuthMode(mode) {
+            if (mode === 'register') {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('authTitle').innerText = 'ចុះឈ្មោះបង្កើតគណនី';
+            } else {
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('authTitle').innerText = 'ចូលប្រើប្រាស់ប្រព័ន្ធ';
+            }
+        }
+
+        function checkRegisterTypeSelection() {
+            const typeVal = document.getElementById('regType').value;
+            const container = document.getElementById('regManagerIdContainer');
+            const select = document.getElementById('regManagerId');
+            if (typeVal === 'Admin') {
+                select.value = ""; select.required = false; container.style.display = 'none';
+            } else {
+                select.required = true; container.style.display = 'block';
+            }
+        }
+
+        function switchMainTab(tab) {
+            currentMainTab = tab;
+            const btnStaff = document.getElementById('btnTabStaff');
+            const btnLeave = document.getElementById('btnTabLeave');
+            const btnReport = document.getElementById('btnTabReport');
+
+            if(btnStaff) btnStaff.className = 'flex-1 sm:flex-initial px-3 py-1.5 text-slate-700 text-xs font-semibold rounded-lg transition';
+            if(btnLeave) btnLeave.className = 'flex-1 sm:flex-initial px-3 py-1.5 text-slate-700 text-xs font-semibold rounded-lg transition';
+            if(btnReport) btnReport.className = 'flex-1 sm:flex-initial px-3 py-1.5 text-slate-700 text-xs font-semibold rounded-lg transition';
+
+            if (tab === 'staff' && btnStaff) {
+                btnStaff.className = 'flex-1 sm:flex-initial px-3 py-1.5 bg-brand-600 text-white text-xs font-semibold rounded-lg shadow-sm transition';
+            } else if (tab === 'leave' && btnLeave) {
+                btnLeave.className = 'flex-1 sm:flex-initial px-3 py-1.5 bg-brand-600 text-white text-xs font-semibold rounded-lg shadow-sm transition';
+            } else if (tab === 'report' && btnReport) {
+                btnReport.className = 'flex-1 sm:flex-initial px-3 py-1.5 bg-brand-600 text-white text-xs font-semibold rounded-lg shadow-sm transition';
+            }
+
+            const roleFilter = document.getElementById('roleFilter');
+            const leaveTypeFilter = document.getElementById('leaveTypeFilter');
+
+            if (tab === 'staff') {
+                if (currentUser && currentUser.type === 'Admin') roleFilter.classList.remove('hidden');
+                if (leaveTypeFilter) leaveTypeFilter.classList.add('hidden');
+            } else if (tab === 'leave') {
+                if (roleFilter) roleFilter.classList.add('hidden');
+                if (leaveTypeFilter) leaveTypeFilter.classList.remove('hidden');
+            } else {
+                if (roleFilter) roleFilter.classList.add('hidden');
+                if (leaveTypeFilter) leaveTypeFilter.classList.add('hidden');
+            }
+
+            renderTableData();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('loginId').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            
+            const user = users.find(u => u.id === id && u.password === pass);
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('current_session', JSON.stringify(user));
+                showDashboard();
+                showToast("ចូលប្រព័ន្ធបានជោគជ័យ!", "success");
+            } else {
+                showToast("អត្តលេខ ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ!", "error");
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const id = document.getElementById('regId').value.trim();
+            if (users.some(u => u.id === id)) {
+                showToast("អត្តលេខនេះមានរួចហើយ!", "error");
+                return;
+            }
+            const typeVal = document.getElementById('regType').value;
+            const newUser = {
+                id: id,
+                name: document.getElementById('regName').value.trim(),
+                password: document.getElementById('regPassword').value.trim(),
+                location: document.getElementById('regLocation').value.trim(),
+                startDate: document.getElementById('regStartDate').value,
+                status: document.getElementById('regStatus').value,
+                type: typeVal,
+                managerId: typeVal === 'Admin' ? '' : document.getElementById('regManagerId').value
+            };
+            users.push(newUser);
+            toggleAuthMode('login');
+            showToast("ចុះឈ្មោះបានជោគជ័យ!", "success");
+
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: "POST", mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ type: "user_action", user: newUser })
+                });
+            } catch(e) {}
+        }
+
+        function getGPSLocation(targetId) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const coords = `${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`;
+                    document.getElementById(targetId).value = coords;
+                    showToast("ទាញយក GPS បានជោគជ័យ!", "success");
+                }, () => { showToast("មិនអាចទាញយក GPS បានទេ", "error"); });
+            } else {
+                showToast("ឧបករណ៍របស់អ្នកមិនគាំទ្រ GPS", "error");
+            }
+        }
+
+        function openMapModal(targetId) {
+            targetLocationInputId = targetId;
+            document.getElementById('mapModal').classList.remove('hidden');
+            setTimeout(() => {
+                if (!mapInstance) {
+                    mapInstance = L.map('mapPicker').setView([11.5564, 104.9282], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+                    mapInstance.on('click', e => {
+                        selectedCoords = `${e.latlng.lat.toFixed(6)},${e.latlng.lng.toFixed(6)}`;
+                        if (markerInstance) mapInstance.removeLayer(markerInstance);
+                        markerInstance = L.marker([e.latlng.lat, e.latlng.lng]).addTo(mapInstance);
+                    });
+                }
+                mapInstance.invalidateSize();
+            }, 200);
+        }
+        function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); }
+        function confirmMapLocation() {
+            if (selectedCoords && targetLocationInputId) {
+                document.getElementById(targetLocationInputId).value = selectedCoords;
+                closeMapModal();
+                showToast("បានកំណត់ទីតាំងរួចរាល់!", "success");
+            } else {
+                showToast("សូមចុចជ្រើសរើសទីតាំងលើផែនទីជាមុនសិន", "error");
+            }
+        }
+
+        function performCheckIn(action) {
+            if (!currentUser) return;
+
+            // ១. ពិនិត្យមើលថាតើ User ມີ Location ដែរឬទេ
+            if (!currentUser.location || !currentUser.location.includes(',')) {
+                showToast("គណនីរបស់អ្នកពុំទាន់មានទីតាំង (Location) ស្ដង់ដារទេ!", "error");
+                return;
+            }
+
+            // យក Latitude និង Longitude របស់តូប (ពី Profile User)
+            const [shopLat, shopLng] = currentUser.location.split(',').map(Number);
+
+            // ២. ទាញយក GPS បច្ចុប្បន្នរបស់អ្នកប្រើប្រាស់
+            if (!navigator.geolocation) {
+                showToast("ឧបករណ៍របស់អ្នកមិនគាំទ្រ GPS ទេ។", "error");
+                return;
+            }
+
+            showToast("កំពុងពិនិត្យទីតាំង GPS...", "info");
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+
+                // ៣. គណនាចម្ងាយជាម៉ែត្រ (ប្រើប្រាស់ Haversine Formula)
+                const distance = calculateDistanceMeters(shopLat, shopLng, userLat, userLng);
+
+                // ៤. ផ្ទៀងផ្ទាត់ចម្ងាយ (កំណត់ត្រឹម ១០ ម៉ែត្រ តាមតម្រូវការ)
+                const ALLOWED_DISTANCE = 10; // ជាម៉ែត្រ
+
+                if (distance > ALLOWED_DISTANCE) {
+                    showToast(`មិនអាច Check-${action} បានទេ! អ្នកនៅឆ្ងាយពីទីតាំងតូបចម្ងាយ ${Math.round(distance)} ម៉ែត្រ (ហាមឃាត់លើសពី ${ALLOWED_DISTANCE}ម)`, "error");
+                    return;
+                }
+
+                // ៥. ប្រសិនបើនៅក្នុងចម្ងាយកំណត់ ទើបអនុញ្ញាតឱ្យ Check-In / Check-Out ធម្មតា
+                const now = new Date().toISOString(); 
+                
+                myAttendanceHistory.push({
+                    userId: currentUser.id,
+                    action: action,
+                    timestamp: now
+                });
+                saveToStorage();
+                updateDashboardSummary();
+
+                sendReportToGoogleSheet(action, `Check-${action} at ${new Date().toLocaleString()}`);
+                if(document.getElementById('checkInStatusBadge')) {
+                    document.getElementById('checkInStatusBadge').innerText = `បាន Check-${action}`;
+                    document.getElementById('checkInStatusBadge').className = action === 'IN' ? 'text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold' : 'text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 font-semibold';
+                }
+                showToast(`Check-${action} បានជោគជ័យ!`, "success");
+
+            }, error => {
+                showToast("មិនអាចទាញយកទីតាំង GPS របស់អ្នកបានទេ. សូមបើក GPS ជាមុនសិន!", "error");
+            }, { enableHighAccuracy: true });
+        }
+
+// មុខងារគណនាចម្ងាយជាម៉ែត្ររវាងចំណុច GPS ពីរ
+function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // รัศมีផែនដីគិតជាម៉ែត្រ
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // ចម្ងាយគិតជាម៉ែត្រ
+}
+
+        async function sendReportToGoogleSheet(action, details) {
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: "POST", mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        type: "attendance", timestamp: new Date().toLocaleString(),
+                        userId: currentUser.id, userName: currentUser.name, userType: currentUser.type,
+                        action: action, details: details, location: currentUser.location || "-"
+                    })
+                });
+            } catch(e) {}
+        }
+
+        function openLeaveModal(type) {
+            document.getElementById('leaveTypeInput').value = type;
+            document.getElementById('leaveModalTypeBadge').innerText = type;
+            document.getElementById('leaveModal').classList.remove('hidden');
+        }
+        function closeLeaveModal() { document.getElementById('leaveModal').classList.add('hidden'); }
+
+        async function handleSubmitLeave(event) {
+            event.preventDefault();
+            const type = document.getElementById('leaveTypeInput').value;
+            const startDate = document.getElementById('leaveStartDate').value;
+            const endDate = document.getElementById('leaveEndDate').value;
+            const reason = document.getElementById('leaveReason').value;
+            const staffInfo = users.find(u => u.id === currentUser.id) || currentUser;
+
+            const newLeave = {
+                id: 'LEAVE_' + Date.now(), userId: staffInfo.id, userName: staffInfo.name,
+                managerId: staffInfo.managerId || "", type: type, startDate: startDate,
+                endDate: endDate, reason: reason, status: 'Pending'
+            };
+
+            leaveRequests.push(newLeave);
+            saveToStorage();
+            updateDashboardSummary();
+            closeLeaveModal();
+            showToast("ស្នើសុំច្បាប់បានជោគជ័យ!", "success");
+            switchMainTab('leave');
+
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: "POST", mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ type: "leave_request", leave: newLeave })
+                });
+            } catch(e) {}
+        }
+
+        async function approveLeave(leaveId) {
+            const leave = leaveRequests.find(l => l.id === leaveId);
+            if (!leave) return;
+            leave.status = 'Approved';
+            saveToStorage();
+            updateDashboardSummary();
+            renderTableData();
+            showToast("បានអនុម័ត (Approved) សំណើច្បាប់!", "success");
+
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: "POST", mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ type: "leave_action", leave: leave })
+                });
+            } catch(e) {}
+        }
+
+        async function rejectLeave(leaveId) {
+            const leave = leaveRequests.find(l => l.id === leaveId);
+            if (!leave) return;
+            leave.status = 'Rejected';
+            saveToStorage();
+            updateDashboardSummary();
+            renderTableData();
+            showToast("បានបដិសេធ (Rejected) សំណើច្បាប់", "info");
+
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: "POST", mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ type: "leave_action", leave: leave })
+                });
+            } catch(e) {}
+        }
+
+        function renderTableData() {
+            if (!currentUser) return;
+            const table = document.getElementById('mainTable');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const recordCountBadge = document.getElementById('recordCountBadge');
+            const tableTitleText = document.getElementById('tableTitleText');
+
+                // ១. ករណី Tab "របាយការណ៍ប្រចាំខែ" (Report) ដូចរូបភាព
+            if (currentMainTab === 'report') {
+                tableTitleText.innerText = 'របាយការណ៍ការងារប្រចាំថ្ងៃ តាម User BA Staff (ប្រចាំខែ)';
+                
+                let html = `<thead><tr class="bg-slate-50 border-b text-slate-600">
+                    <th class="p-3 font-semibold min-w-[160px]">BA ID & Name</th>`;
+                
+                for(let d=1; d<=31; d++) {
+                    html += `<th class="p-2 text-center text-xs font-medium">${d}</th>`;
+                }
+                html += `</tr></thead><tbody class="divide-y divide-slate-100 text-xs sm:text-sm">`;
+
+                // កំណត់សិទ្ធិមើលតាមប្រភេទ User (BA Staff, Manager, Admin)
+                let baStaffs = users.filter(u => (!u.type || u.type === 'BA Staff'));
+
+                if (currentUser.type === 'BA Staff') {
+                    // BA Staff មើលឃើញតែខ្លួនឯង
+                    baStaffs = baStaffs.filter(u => u.id.toString().trim() === currentUser.id.toString().trim());
+                } else if (currentUser.type === 'Manager') {
+                    // Manager មើលឃើញខ្លួនឯង និងកូនក្រុមដែលមាន Manager ID ដូចគ្នា
+                    baStaffs = baStaffs.filter(u => {
+                        let isSelf = u.id.toString().trim() === currentUser.id.toString().trim();
+                        let isSubordinate = u.managerId && currentUser.managerId && 
+                                            u.managerId.toString().trim().toUpperCase() === currentUser.managerId.toString().trim().toUpperCase();
+                        return isSelf || isSubordinate;
+                    });
+                }
+                // បើជា Admin គឺបង្ហាញទាំងអស់ដោយស្វ័យប្រវត្តិ
+
+                // ត្រងតាមពាក្យស្វែងរក (Search Input) ន្ថែមទៀត
+                baStaffs = baStaffs.filter(u => u.id.toLowerCase().includes(searchVal) || (u.name && u.name.toLowerCase().includes(searchVal)));
+
+                if (recordCountBadge) recordCountBadge.innerText = baStaffs.length + ' BA Staffs';
+
+                if(baStaffs.length === 0) {
+                    html += `<tr><td colspan="32" class="text-center p-6 text-slate-400">មិនមានទិន្នន័យ BA Staff</td></tr>`;
+                }
+
+                baStaffs.forEach(staff => {
+                    html += `<tr><td class="p-3 font-medium">
+                        <div class="text-indigo-600 font-bold">${staff.id}</div>
+                        <div class="text-[11px] text-slate-400">${staff.name || ''}</div>
+                    </td>`;
+
+            // === ជំនួសកូដផ្នែកបង្ហាញថ្ងៃទី ១ ដល់ ៣១ ក្នុង renderTableData() របស់អ្នកដោយកូដនេះ ===
+            const currentDate = new Date();
+            const curYear = currentDate.getFullYear();
+            const curMonth = currentDate.getMonth(); // 0-11 (ឧ. ខែ 10 គឺ index 9)
+            const totalDays = new Date(curYear, curMonth + 1, 0).getDate();
+
+            for(let day=1; day<=31; day++) {
+            if(day > totalDays) {
+                html += `<td class="p-2 text-center text-slate-300">-</td>`;
+            } else {
+                let fDay = day < 10 ? '0' + day : day.toString();
+                let fMonth = (curMonth + 1) < 10 ? '0' + (curMonth + 1) : (curMonth + 1).toString();
+                let targetDateStr = `${curYear}-${fMonth}-${fDay}`; // ទម្រង់ YYYY-MM-DD
+                let targetDateSlash = `${fDay}/${fMonth}/${curYear}`; // ទម្រង់ DD/MM/YYYY
+
+                // ថ្ងៃបច្ចុប្បន្ននៃរង្វង់ loop គិតជា timestamp (midnight) ដើម្បីសុពលភាពច្បាស់លាស់
+                let currTimestamp = new Date(curYear, curMonth, day).setHours(0,0,0,0);
+
+                // ១. ពិនិត្យមើលថាតើថ្ងៃនេះមានច្បាប់សម្រាក (Leave) ដែល Approved ហើយឬនៅ
+                let approvedLeave = leaveRequests.find(l => {
+                    if (!l.userId || l.status !== 'Approved') return false;
+                    let matchUser = l.userId.toString().trim() === staff.id.toString().trim();
+                    if (!matchUser) return false;
+
+                    if (!l.startDate || !l.endDate) return false;
+
+                    // แปลง Start Date និង End Date ឱ្យទៅជា Date object (បំបាត់បញ្ហា Timezone / String format)
+                    let sDate = new Date(l.startDate);
+                    sDate.setHours(0,0,0,0);
+                    
+                    let eDate = new Date(l.endDate);
+                    eDate.setHours(0,0,0,0);
+
+                    if (isNaN(sDate.getTime()) || isNaN(eDate.getTime())) return false;
+
+                    return currTimestamp >= sDate.getTime() && currTimestamp <= eDate.getTime();
+                });
+
+                // ២. ពិនិត្យមើលទិន្នន័យ Attendance (Check-In / Out)
+                let rec = attendanceData.find(r => {
+                    if (!r.userId || !r.timestamp) return false;
+                    let matchUser = r.userId.toString().trim() === staff.id.toString().trim();
+                    if (!matchUser) return false;
+                    return r.timestamp.includes(targetDateStr) || r.timestamp.includes(targetDateSlash);
+                });
+
+                // ៣. បង្ហាញលទ្ធផល
+                if (approvedLeave) {
+                    html += `<td class="p-2 text-center text-pink-600 font-bold bg-pink-50 rounded" title="Leave: ${approvedLeave.type}">${approvedLeave.type}</td>`;
+                } else if(rec && rec.checkIn && rec.checkOut) {
+                    html += `<td class="p-2 text-center text-emerald-600 font-bold" title="Check-In & Out">✓</td>`;
+                } else if(rec && rec.checkIn) {
+                    html += `<td class="p-2 text-center text-amber-500 font-bold" title="Check-In Only">O</td>`;
+                } else {
+                    html += `<td class="p-2 text-center text-slate-300">-</td>`;
+                }
+            }
+        }
+                    html += `</tr>`;
+                });
+
+                html += `</tbody>`;
+                table.innerHTML = html;
+            } 
+            // ២. ករណី Tab "បុគ្គលិក" (Staff)
+            else if (currentMainTab === 'staff') {
+                tableTitleText.innerText = (currentUser.type === 'Admin') ? 'បញ្ជីបុគ្គលិកទាំងអស់' : 'បញ្ជីកូនក្រុមក្រោមការគ្រប់គ្រង';
+                let filtered = users;
+                if (currentUser.type === 'Manager') {
+                    filtered = users.filter(u => (u.managerId && u.managerId.trim().toUpperCase() === currentUser.managerId.trim().toUpperCase()) || u.id === currentUser.id);
+                } else if (currentUser.type === 'BA Staff') {
+                    filtered = users.filter(u => u.id === currentUser.id);
+                }
+
+                filtered = filtered.filter(u => u.id.toLowerCase().includes(searchVal) || u.name.toLowerCase().includes(searchVal));
+                if (recordCountBadge) recordCountBadge.innerText = filtered.length + ' Records';
+
+                let html = `<thead><tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                    <th class="py-3 px-3 text-center">Nº</th>
+                    <th class="py-3 px-3">ID</th>
+                    <th class="py-3 px-3">NAME</th>
+                    <th class="py-3 px-3 hidden sm:table-cell">LOCATION</th>
+                    <th class="py-3 px-3">STATUS</th>
+                    <th class="py-3 px-3">TYPE</th>
+                    <th class="py-3 px-3">MANAGER ID</th>
+                    <th class="py-3 px-3 text-right">សកម្មភាព</th>
+                </tr></thead><tbody class="divide-y text-xs sm:text-sm">`;
+
+                filtered.forEach((u, idx) => {
+                    let globalIdx = users.findIndex(item => item.id === u.id);
+                    html += `<tr class="hover:bg-slate-50/50">
+                        <td class="py-3 px-3 text-center font-semibold text-slate-500">${idx + 1}</td>
+                        <td class="py-3 px-3 font-bold text-brand-600">${u.id}</td>
+                        <td class="py-3 px-3 font-medium">${u.name}</td>
+                        <td class="py-3 px-3 hidden sm:table-cell text-slate-500">${u.location}</td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] sm:text-xs font-bold">${u.status}</span></td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] sm:text-xs font-bold">${u.type}</span></td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-lg text-[10px] sm:text-xs font-bold">${u.managerId || '-'}</span></td>
+                        <td class="py-3 px-3 text-right space-x-1">
+                            ${currentUser.type === 'Admin' ? `
+                                <button onclick="openEditUserModal(${globalIdx})" class="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-semibold">កែប្រែ</button>
+                                <button onclick="deleteUser('${u.id}')" class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-semibold">លុប</button>
+                            ` : '-'}
+                        </td>
+                    </tr>`;
+                });
+                html += `</tbody>`;
+                table.innerHTML = html;
+            } 
+            // ៣. ករណី Tab "សំណើច្បាប់" (Leave)
+            else {
+                tableTitleText.innerText = 'បញ្ជីសំណើសុំច្បាប់សម្រាក';
+                let filtered = leaveRequests;
+                
+                if (currentUser.type === 'Manager') {
+                    filtered = leaveRequests.filter(l => {
+                        let staffObj = users.find(u => u.id === l.userId);
+                        let sMgr = staffObj ? staffObj.managerId : l.managerId;
+                        return (sMgr && sMgr.trim().toUpperCase() === currentUser.managerId.trim().toUpperCase()) || l.userId === currentUser.id;
+                    });
+                } else if (currentUser.type === 'BA Staff') {
+                    filtered = leaveRequests.filter(l => l.userId === currentUser.id);
+                }
+
+                const leaveStatusVal = document.getElementById('leaveTypeFilter') ? document.getElementById('leaveTypeFilter').value : 'ALL';
+                if (leaveStatusVal !== 'ALL') {
+                    filtered = filtered.filter(l => l.status === leaveStatusVal);
+                }
+                filtered = filtered.filter(l => l.userId.toLowerCase().includes(searchVal) || l.userName.toLowerCase().includes(searchVal));
+                if (recordCountBadge) recordCountBadge.innerText = filtered.length + ' Records';
+
+                let html = `<thead><tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                    <th class="py-3 px-3 text-center">Nº</th>
+                    <th class="py-3 px-3">STAFF</th>
+                    <th class="py-3 px-3">TYPE</th>
+                    <th class="py-3 px-3">DATES</th>
+                    <th class="py-3 px-3">STATUS</th>
+                    <th class="py-3 px-3 text-right">ACTION</th>
+                </tr></thead><tbody class="divide-y text-xs sm:text-sm">`;
+
+                filtered.forEach((l, idx) => {
+                    let badge = l.status === 'Approved' ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">Approved</span>' : (l.status === 'Rejected' ? '<span class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px] font-bold">Rejected</span>' : '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-bold">Pending</span>');
+                    
+                    let staffObj = users.find(u => u.id === l.userId);
+                    let sMgr = staffObj ? staffObj.managerId : l.managerId;
+                    let canApprove = ((currentUser.type === 'Admin') || (currentUser.type === 'Manager' && sMgr && sMgr.trim().toUpperCase() === currentUser.managerId.trim().toUpperCase())) && l.status === 'Pending';
+
+                    html += `<tr class="hover:bg-slate-50/50">
+                        <td class="py-3 px-3 text-center font-semibold text-slate-500">${idx + 1}</td>
+                        <td class="py-3 px-3 font-bold text-brand-600">${l.userName} (${l.userId})</td>
+                        <td class="py-3 px-3"><span class="px-2 py-0.5 bg-pink-50 text-pink-600 rounded text-xs font-bold">${l.type}</span></td>
+                        <td class="py-3 px-3 text-[11px] sm:text-xs text-slate-600">${l.startDate} ➔ ${l.endDate}</td>
+                        <td class="py-3 px-3">${badge}</td>
+                        <td class="py-3 px-3 text-right space-x-1">
+                            ${canApprove ? `
+                                <button onclick="approveLeave('${l.id}')" class="px-2 py-1 bg-emerald-600 text-white rounded text-[11px] font-semibold">Approve</button>
+                                <button onclick="rejectLeave('${l.id}')" class="px-2 py-1 bg-rose-600 text-white rounded text-[11px] font-semibold">Reject</button>
+                            ` : `<span class="text-[11px] text-slate-400">-</span>`}
+                        </td>
+                    </tr>`;
+                });
+                html += `</tbody>`;
+                table.innerHTML = html;
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!currentUser || currentUser.type !== 'Admin') return;
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) {
+                users = users.filter(u => u.id !== id);
+                renderTableData();
+                showToast("លុបបានជោគជ័យ!", "info");
+                try {
+                    await fetch(`${GOOGLE_SHEET_API_URL}?type=delete_user&userId=${encodeURIComponent(id)}`, { method: "GET", mode: "no-cors" });
+                } catch (error) {}
+            }
+        }
+
+        function checkUserTypeSelection() {
+            const typeVal = document.getElementById('mType').value;
+            const container = document.getElementById('managerIdContainer');
+            const select = document.getElementById('mManagerId');
+            if (typeVal === 'Admin') {
+                select.value = ""; select.required = false; container.style.display = 'none';
+            } else {
+                select.required = true; container.style.display = 'block';
+            }
+        }
+
+        function openAddUserModal() {
+            document.getElementById('modalTitle').innerText = 'បន្ថែមបុគ្គលិកថ្មី';
+            document.getElementById('modalForm').reset();
+            document.getElementById('modalEditIndex').value = -1;
+            document.getElementById('mId').disabled = false;
+            document.getElementById('managerIdContainer').style.display = 'block';
+            document.getElementById('mManagerId').required = true;
+            document.getElementById('userModal').classList.remove('hidden');
+        }
+
+        function openEditUserModal(index) {
+            const user = users[index];
+            if (!user) return;
+            document.getElementById('modalTitle').innerText = 'កែប្រែព័ត៌មានបុគ្គលិក';
+            document.getElementById('modalEditIndex').value = index;
+            document.getElementById('mId').value = user.id;
+            document.getElementById('mId').disabled = true;
+            document.getElementById('mName').value = user.name;
+            document.getElementById('mPassword').value = '';
+            document.getElementById('mLocation').value = user.location;
+            
+            if (user.startDate) {
+                document.getElementById('mStartDate').value = formatDateForInput(user.startDate);
+            } else {
+                document.getElementById('mStartDate').value = '';
+            }
+
+            document.getElementById('mStatus').value = user.status;
+            document.getElementById('mType').value = user.type;
+            document.getElementById('mManagerId').value = user.managerId || '';
+            checkUserTypeSelection();
+            document.getElementById('userModal').classList.remove('hidden');
+        }
+
+        function formatDateForInput(dateString) {
+            if (!dateString) return '';
+            let d = new Date(dateString);
+            if (isNaN(d.getTime())) return dateString; 
+            
+            let year = d.getFullYear();
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let day = String(d.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+        }
+
+        function closeUserModal() { document.getElementById('userModal').classList.add('hidden'); }
+
+        async function handleSaveModalUser(event) {
+            event.preventDefault();
+            const editIndex = parseInt(document.getElementById('modalEditIndex').value);
+            const id = document.getElementById('mId').value.trim();
+            const typeVal = document.getElementById('mType').value;
+            
+            const userData = {
+                id: id,
+                name: document.getElementById('mName').value.trim(),
+                password: document.getElementById('mPassword').value.trim(),
+                location: document.getElementById('mLocation').value.trim(),
+                startDate: document.getElementById('mStartDate').value,
+                status: document.getElementById('mStatus').value,
+                type: typeVal,
+                managerId: typeVal === 'Admin' ? '' : document.getElementById('mManagerId').value
+            };
+
+            if (editIndex !== -1) {
+                if(!userData.password) {
+                    userData.password = users[editIndex].password;
+                }
+                users[editIndex] = userData;
+            } else {
+                users.push(userData);
+            }
+
+            closeUserModal();
+            renderTableData();
+            showToast("រក្សាទុកបានជោគជ័យ!", "success");
+
+            try {
+                await fetch(GOOGLE_SHEET_API_URL, {
+                    method: "POST", mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ type: "sync_users", user: userData })
+                });
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>

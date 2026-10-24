@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Beautiful gradient for depth and vibrancy -->
+    <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff5293" />
+      <stop offset="100%" stop-color="#f0377e" />
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Circular background -->
+  <circle cx="256" cy="256" r="256" fill="url(#pinkGrad)" />
+
+  <!-- Inner circular border accent (optional subtle glow) -->
+  <circle cx="256" cy="256" r="250" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2" />
+
+  <!-- "Morea" Script Brand Text -->
+  <g transform="translate(256, 275)" text-anchor="middle" filter="url(#subtleShadow)">
+    <text
+      x="0"
+      y="0"
+      fill="#ffffff"
+      font-family="'Playfair Display', 'Brush Script MT', 'Great Vibes', 'Bickham Script Pro', 'Snell Roundhand', 'Georgia', 'Times New Roman', cursive, serif"
+      font-size="160"
+      font-style="italic"
+      font-weight="600"
+      letter-spacing="-2"
+    >Morea</text>
+  </g>
+
+  <!-- Tagline: "• EVERYDAY YOUNG •" -->
+  <g transform="translate(256, 360)" text-anchor="middle">
+    <text
+      x="0"
+      y="0"
+      fill="#ffffff"
+      font-family="'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      font-size="21"
+      font-weight="700"
+      letter-spacing="5"
+      opacity="0.95"
+    >• EVERYDAY YOUNG •</text>
+  </g>
+</svg>

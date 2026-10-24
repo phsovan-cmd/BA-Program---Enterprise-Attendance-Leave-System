@@ -1,0 +1,1 @@
+Monthly BA Report: Khmer date numbers/month names, frozen table header below Date, sticky first column, color striped rows; sales value in USD, SO only for explicit No Sales submissions, dash for no record. UI only; Google Apps Script unchanged.
