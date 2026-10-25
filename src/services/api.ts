@@ -839,10 +839,12 @@ export async function syncSalesFromSheet(): Promise<{success:boolean;data?:Sales
       const groupKey=baId.toUpperCase()+'|'+id;
       let order=grouped.get(groupKey);
       if(!order) {
+        const recordedTotal = Number(r.totalSales);
         order={id,date:formatDateToYMD(r.date)||String(r.date||'').slice(0,10),
           timestamp:String(r.timestamp||''),baId,baName:String(r.baName||''),
           province:String(r.province||''),isNoSales:false,items:[],
-          totalItems:0,totalQty:0,totalAmount:0,status:'Synced'};
+          totalItems:0,totalQty:Number(r.rowTotalQty)||0,
+          totalAmount:Number.isFinite(recordedTotal)?recordedTotal:0,status:'Synced'};
         grouped.set(groupKey,order);
       }
       const code=String(r.productCode||'').trim();
@@ -851,8 +853,8 @@ export async function syncSalesFromSheet(): Promise<{success:boolean;data?:Sales
       const price=Number(r.price)||0;
       const total=Number(r.total)||0;
       order.items.push({productCode:code,productName:String(r.productName||''),quantity,price,total});
-      order.totalQty+=quantity;
-      order.totalAmount+=total;
+      if (r.rowTotalQty == null) order.totalQty += quantity;
+      if (r.totalSales == null) order.totalAmount += total;
       order.totalItems=order.items.length;
       if(code==='NO_SALES') order.isNoSales=true;
     }
