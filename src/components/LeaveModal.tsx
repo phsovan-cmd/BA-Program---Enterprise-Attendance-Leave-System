@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Calendar, X, Clock, FileText, Send } from 'lucide-react';
 import { LeaveType, LEAVE_TYPES } from '../types';
 
@@ -25,6 +25,7 @@ export const LeaveModal: React.FC<LeaveModalProps> = ({
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,9 +55,11 @@ export const LeaveModal: React.FC<LeaveModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current) return;
     if (!startDate || !endDate || !reason.trim()) return;
 
     try {
+      submitLock.current = true;
       setIsSubmitting(true);
       await onSubmit({
         type: selectedType,
@@ -66,6 +69,7 @@ export const LeaveModal: React.FC<LeaveModalProps> = ({
       });
       onClose();
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };

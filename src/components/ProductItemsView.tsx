@@ -79,6 +79,8 @@ export const ProductItemsView: React.FC<ProductItemsViewProps> = ({
   const [formMinAlert, setFormMinAlert] = useState('5');
   const [formImage, setFormImage] = useState('');
   const [formIsHot, setFormIsHot] = useState(false);
+  const [isSavingItem, setIsSavingItem] = useState(false);
+  const saveItemLock = useRef(false);
 
   // Delete Confirmation Modal states
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -174,6 +176,7 @@ export const ProductItemsView: React.FC<ProductItemsViewProps> = ({
   // Save Single Product
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saveItemLock.current) return;
     if (!isAdmin) return;
 
     if (!formCode.trim()) {
@@ -212,6 +215,8 @@ export const ProductItemsView: React.FC<ProductItemsViewProps> = ({
     };
 
     try {
+      saveItemLock.current = true;
+      setIsSavingItem(true);
       await onSaveProduct(productPayload);
       setIsItemModalOpen(false);
       onShowToast(
@@ -222,6 +227,9 @@ export const ProductItemsView: React.FC<ProductItemsViewProps> = ({
       );
     } catch (err: any) {
       onShowToast('បរាជ័យក្នុងការរក្សាទុកទំនិញ!', 'error');
+    } finally {
+      saveItemLock.current = false;
+      setIsSavingItem(false);
     }
   };
 
@@ -839,9 +847,10 @@ export const ProductItemsView: React.FC<ProductItemsViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20"
+                  disabled={isSavingItem}
+                  className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 disabled:opacity-50"
                 >
-                  រក្សាទុកទំនិញ
+                  {isSavingItem ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកទំនិញ'}
                 </button>
               </div>
             </form>

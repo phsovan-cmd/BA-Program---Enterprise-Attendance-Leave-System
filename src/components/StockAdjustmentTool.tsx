@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Check, ClipboardCheck, Search, ShieldCheck} from 'lucide-react';
 import type {Product, User} from '../types';
 
@@ -25,14 +25,16 @@ export const StockAdjustmentTool: React.FC<Props> = ({currentUser, products, onS
  const canSubmitToday = isNoteMode || dayOfMonth === scheduledDay;
  const [note,setNote] = useState('');
  const [busy,setBusy] = useState(false);
+ const submitLock = useRef(false);
  useEffect(()=> {try {localStorage.setItem(storageKey, JSON.stringify(draft));} catch {}},[draft,storageKey]);
  const visible = useMemo(()=>products.filter(p=>`${p.productCode} ${p.name}`.toLowerCase().includes(term.toLowerCase())),[products,term]);
  const ready = products.filter(p=>draft[p.productCode]?.done && Number.isInteger(draft[p.productCode].qty) && draft[p.productCode].qty > 0);
  const update = (code:string, qty:number, done=false)=>setDraft(d=>({...d,[code]:{qty,done,transactionId:d[code]?.transactionId || `STK_ADJ_${Date.now()}_${Math.random().toString(36).slice(2,12)}`}}));
  const submit = async () => {
-  if (!ready.length || busy) return;
+  if (!ready.length || submitLock.current) return;
   if (!canSubmitToday) { onShowToast(`Stock Count ${count} អាច Submit បានតែថ្ងៃទី ${scheduledDay} ប៉ុណ្ណោះ`, 'error'); return; }
   if (isNoteMode && !note.trim()) {onShowToast('សូមបំពេញ Stock Count Note', 'error'); return;}
+  submitLock.current = true;
   setBusy(true);
   try {
    const changes = ready.map(p => ({productId:p.id,qty:draft[p.productCode].qty,transactionId:draft[p.productCode].transactionId || `STK_ADJ_${Date.now()}_${p.productCode}_${Math.random().toString(36).slice(2,10)}`}));
@@ -41,7 +43,7 @@ export const StockAdjustmentTool: React.FC<Props> = ({currentUser, products, onS
    setDraft(d=>{const next={...d};ready.forEach(p=>delete next[p.productCode]);return next;});
    onShowToast('បានបញ្ចូល Stock In ទៅ Google Sheets រួច', 'success');
   } catch(e) {onShowToast(e instanceof Error?e.message:'Submit មិនជោគជ័យ','error');}
-  finally {setBusy(false);}
+  finally {submitLock.current = false;setBusy(false);}
  };
  return <section className="space-y-4">
   <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
@@ -58,7 +60,7 @@ export const StockAdjustmentTool: React.FC<Props> = ({currentUser, products, onS
    <p className={`text-xs font-semibold ${canSubmitToday?'text-emerald-700':'text-rose-600'}`}>{isNoteMode ? 'Stock Count Note: Submit បានគ្រប់ថ្ងៃ (មិនរាប់ក្នុង Stock Count 1–4)' : canSubmitToday ? `ថ្ងៃនេះជាថ្ងៃ Stock Count ${count} (ថ្ងៃទី ${scheduledDay})` : `Stock Count ${count} កំណត់ថ្ងៃទី ${scheduledDay} រៀងរាល់ខែ។ ថ្ងៃផ្សេងមិនអាច Submit បានទេ។`}</p>
    <div className="flex flex-wrap gap-2 items-center justify-between">
     <span className="text-xs font-semibold text-pink-700">{ready.length} SKU បាន Done</span>
-    <button type="button" disabled={!ready.length||busy||!canSubmitToday||(isNoteMode&&!note.trim())} onClick={submit} className="rounded-xl px-4 py-2.5 bg-pink-600 text-white text-xs font-bold disabled:opacity-40 flex items-center gap-2"><ClipboardCheck size={16}/>{busy?'Submitting...':'Submit Stock In'}</button>
+    <button type="button" disabled={!ready.length||busy||!canSubmitToday||(isNoteMode&&!note.trim())} onClick={submit} className="ba-submit-3d rounded-xl px-4 py-2.5 bg-pink-600 text-white text-xs font-bold disabled:opacity-40 flex items-center gap-2"><ClipboardCheck size={16}/>{busy?'Submitting...':'Submit Stock In'}</button>
    </div>
   </div>
   <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">

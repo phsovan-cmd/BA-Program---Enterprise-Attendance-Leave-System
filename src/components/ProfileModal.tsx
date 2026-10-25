@@ -28,6 +28,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [confirmPassword,setConfirmPassword] = useState('');
   const [changingPassword,setChangingPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const passwordSubmitLock = useRef(false);
 
   // Sync state if currentUser changes
   React.useEffect(() => {
@@ -183,12 +184,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           {/* Change own password: no Admin approval required. */}
           <form className="mt-4 w-full text-left border border-indigo-100 rounded-xl p-3 space-y-2"
             onSubmit={async e=>{e.preventDefault();
+              if(passwordSubmitLock.current)return;
               if(newPassword.length<8){onShowToast('Password ថ្មីយ៉ាងហោចណាស់ 8 តួអក្សរ','error');return;}
               if(newPassword!==confirmPassword){onShowToast('Confirm Password មិនដូចគ្នា','error');return;}
+              passwordSubmitLock.current=true;
               setChangingPassword(true);
               try{await onChangePassword(oldPassword,newPassword);setOldPassword('');setNewPassword('');setConfirmPassword('');onShowToast('Password បាន Update ក្នុង Google Sheets','success');}
               catch(err:any){onShowToast(err?.message||'Change Password failed','error');}
-              finally{setChangingPassword(false);}
+              finally{passwordSubmitLock.current=false;setChangingPassword(false);}
             }}>
             <div className="text-sm font-bold text-indigo-900">ប្ដូរ Password ផ្ទាល់ខ្លួន</div>
             <input type="password" value={oldPassword} onChange={e=>setOldPassword(e.target.value)} placeholder="Current Password" required autoComplete="current-password" className="w-full p-2 border rounded-lg text-sm"/>

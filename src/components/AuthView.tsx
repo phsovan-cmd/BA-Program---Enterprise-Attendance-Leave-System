@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { LogIn, Key, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { User as UserType } from '../types';
 
@@ -19,9 +19,11 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current) return;
     const cleanId = loginId.trim();
     const cleanPass = loginPassword.trim();
 
@@ -35,6 +37,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
     }
 
     try {
+      submitLock.current = true;
       setIsSubmitting(true);
       const ok = await onLogin(cleanId, cleanPass);
       if (!ok) {
@@ -44,6 +47,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       console.error('Login request failed:', error);
       onShowToast('មិនអាចភ្ជាប់ Google Sheets បានទេ។ សូមពិនិត្យ Internet និង Apps Script deployment។', 'error');
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };

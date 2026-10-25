@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   ShoppingCart,
   Search,
@@ -67,6 +67,7 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
   const [isNoSales, setIsNoSales] = useState<boolean>(false);
   const [orderQuantities, setOrderQuantities] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const submitLock = useRef(false);
 
   // Search & Filters in Product Grid
   const [productSearch, setProductSearch] = useState<string>('');
@@ -176,6 +177,7 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
 
   // Submit Order Handler
   const handleSubmitOrder = async () => {
+    if (submitLock.current) return;
     if (!selectedBaId) {
       onShowToast('សូមជ្រើសរើសឈ្មោះ BA ជាមុនសិន!', 'error');
       return;
@@ -212,6 +214,7 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
       status: 'Submitted',
     };
 
+    submitLock.current = true;
     setIsSubmitting(true);
     try {
       const res = await onSubmitSalesOrder(newOrder);
@@ -227,6 +230,7 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
     } catch (e: any) {
       onShowToast('មិនអាចផ្ញើទិន្នន័យបានទេ សូមពិនិត្យ Internet របស់អ្នក!', 'error');
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
@@ -536,7 +540,7 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
                 type="button"
                 onClick={handleSubmitOrder}
                 disabled={isSubmitting || (!isNoSales && totalItemsCount === 0)}
-                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:from-slate-700 disabled:to-slate-800 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2"
+                className="ba-submit-3d w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:from-slate-700 disabled:to-slate-800 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>

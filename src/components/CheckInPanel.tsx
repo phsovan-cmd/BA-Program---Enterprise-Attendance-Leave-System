@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { LogIn, LogOut, MapPin, Navigation, CheckCircle } from 'lucide-react';
 import { User, AttendanceRecord } from '../types';
 import { calculateDistanceMeters, getCurrentPosition, parseCoordinates } from '../utils/geo';
@@ -21,6 +21,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
   onShowToast,
 }) => {
   const [checking, setChecking] = useState(false);
+  const actionLock = useRef(false);
   const [doorAction, setDoorAction] = useState<'IN' | 'OUT' | null>(null);
   useEffect(() => {
     if (!doorAction) return;
@@ -37,7 +38,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
   const latestOut = todayRecords.filter(r => r.action === 'OUT' || !!r.checkOut).slice(-1)[0];
 
   const handleAction = async (action: 'IN' | 'OUT') => {
-    if (checking) return;
+    if (actionLock.current) return;
 
     // Prevent duplicate check-in
     if (action === 'IN' && hasCheckedInToday) {
@@ -58,6 +59,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
     }
 
     try {
+      actionLock.current = true;
       setChecking(true);
       const storeCoords = parseCoordinates(currentUser.location);
 
@@ -100,6 +102,7 @@ export const CheckInPanel: React.FC<CheckInPanelProps> = ({
     } catch (err: any) {
       onShowToast(err.message || `បរាជ័យក្នុងការ Check-${action}`, 'error');
     } finally {
+      actionLock.current = false;
       setChecking(false);
     }
   };

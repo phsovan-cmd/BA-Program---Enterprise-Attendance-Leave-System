@@ -34,6 +34,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   const [isLocating, setIsLocating] = useState(false);
   const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const submitLock = useRef(false);
 
   const isEditing = !!userToEdit;
 
@@ -105,9 +106,11 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitLock.current) return;
     if (!id.trim() || !name.trim()) return;
 
     try {
+      submitLock.current = true;
       setIsSubmitting(true);
       await onSave({
         id: id.trim(),
@@ -124,6 +127,7 @@ export const UserModal: React.FC<UserModalProps> = ({
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Could not save BA List to Google Sheets');
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
