@@ -318,9 +318,7 @@ export default function App() {
   // Auth Handlers
   const handleLogin = async (id: string, pass: string): Promise<boolean> => {
     // Validate against the authoritative BA List; never trust stale local credentials.
-    let found: User | null = null;
-    try { found = await loginFromSheet(id,pass); }
-    catch(e) { console.error('Live login failed',e); return false; }
+    const found = await loginFromSheet(id,pass);
 
     if (found) {
       currentUserRef.current = found;
@@ -916,46 +914,15 @@ export default function App() {
     now.getDate()
   ).padStart(2, '0')}`;
 
-  const normalizeId = (value?: string | null) => String(value || '').trim().toUpperCase();
-
-  const scopedUserIds = React.useMemo(() => {
-    const ids = new Set<string>();
-    if (!currentUser) return ids;
-    if (currentUser.type === 'Admin') {
-      users.forEach(u => ids.add(normalizeId(u.id)));
-      return ids;
-    }
-    ids.add(normalizeId(currentUser.id));
-    if (currentUser.type === 'Manager') {
-      users.forEach(u => {
-        if (normalizeId(u.id) !== normalizeId(currentUser.id) && isUserUnderManager(currentUser, u)) {
-          ids.add(normalizeId(u.id));
-        }
-      });
-    }
-    return ids;
-  }, [currentUser, users]);
-
-  const scopedSalesOrders = React.useMemo(() => {
-    return salesOrders.filter(o => scopedUserIds.has(normalizeId(o.baId)));
-  }, [salesOrders, scopedUserIds]);
-
-  const scopedStockInRecords = React.useMemo(() => {
-    return stockInRecords.filter(r => {
-      const ownerIds = [r.baId, r.requestedById, r.updatedBy].map(normalizeId).filter(Boolean);
-      return ownerIds.some(id => scopedUserIds.has(id));
-    });
-  }, [stockInRecords, scopedUserIds]);
-
   const todayRecords = attendance.filter(a => {
     if (a.userId !== currentUser?.id || !a.timestamp) return false;
     const ymd = formatDateToYMD(a.timestamp);
     return ymd === todayDateStr || (typeof a.timestamp === 'string' && a.timestamp.includes(todayDateStr));
   });
 
-  // Computed summary stats for Sales & Stock (scoped by logged-in user / team)
-  const totalSalesRevenue = scopedSalesOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-  const totalSalesUnits = scopedSalesOrders.reduce((sum, o) => sum + (o.totalQty || 0), 0);
+  // Computed summary stats for Sales & Stock
+  const totalSalesRevenue = salesOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  const totalSalesUnits = salesOrders.reduce((sum, o) => sum + (o.totalQty || 0), 0);
   const totalStockBalance = products.reduce((sum, p) => sum + (p.stockQty || 0), 0);
   const lowStockCount = products.filter(p => (p.stockQty || 0) <= (p.minAlertQty || 5)).length;
 
@@ -1017,7 +984,7 @@ export default function App() {
             <div className="space-y-4 sm:space-y-6">
               {attendanceTab === 'report' && (
                 <div className="space-y-6">
-                  <BAMonthlyCombinedReport currentUser={currentUser} users={users} attendance={attendance} leaves={leaves} salesOrders={scopedSalesOrders} stockInRecords={scopedStockInRecords} />
+                  <BAMonthlyCombinedReport currentUser={currentUser} users={users} attendance={attendance} leaves={leaves} salesOrders={salesOrders} stockInRecords={stockInRecords} />
                 </div>
               )}
 
@@ -1193,7 +1160,7 @@ export default function App() {
                   currentUser={currentUser}
                   users={users}
                   products={products}
-                  salesOrders={scopedSalesOrders}
+                  salesOrders={salesOrders}
                   onSubmitSalesOrder={handleSubmitSalesOrder}
                   onSyncSummaryToSheet={handleSyncStockReportToSheet}
                   onShowToast={showToast}
@@ -1207,7 +1174,7 @@ export default function App() {
                   submittedAt={submittedAt}
                   currentUser={currentUser}
                   products={products}
-                  stockInRecords={scopedStockInRecords}
+                  stockInRecords={stockInRecords}
                   onRequestStockAdjustment={handleRequestStockAdjustment}
                   onSubmitStockBatch={handleSubmitStockBatch}
                   onApproveStockAdjustment={handleApproveStockAdjustment}

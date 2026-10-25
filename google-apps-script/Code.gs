@@ -42,9 +42,10 @@ const LEGACY_COLS = {
 const WEEKLY_COUNT_DAYS = [7, 14, 21, 28];
 
 function db_() {
-  const s = SpreadsheetApp.getActiveSpreadsheet();
-  if (!s) throw Error('Please bind this script to the BA Control Google Spreadsheet');
-  return s;
+  const id = String(PropertiesService.getScriptProperties().getProperty('BA_SPREADSHEET_ID') || '').trim();
+  const spreadsheet = id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) throw new Error('Google Sheet not connected: set BA_SPREADSHEET_ID in Script Properties.');
+  return spreadsheet;
 }
 
 function str_(v) { return String(v == null ? '' : v).trim(); }

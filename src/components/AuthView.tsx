@@ -40,6 +40,9 @@ export const AuthView: React.FC<AuthViewProps> = ({
       if (!ok) {
         onShowToast('អត្តលេខ (User ID) ឬ ពាក្យសម្ងាត់ (Password) មិនត្រឹមត្រូវ!', 'error');
       }
+    } catch (error) {
+      console.error('Login request failed:', error);
+      onShowToast('មិនអាចភ្ជាប់ Google Sheets បានទេ។ សូមពិនិត្យ Internet និង Apps Script deployment។', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -51,7 +54,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
         {/* Banner Header with Morea Logo */}
         <div className="bg-gradient-to-tr from-pink-600 via-rose-600 to-purple-600 p-6 text-white text-center relative rounded-2xl shadow-lg mb-4">
           <div className="w-16 h-16 mx-auto mb-3 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center p-1 border border-white/30 shadow-inner">
-            <img src="/icon.svg" alt="Morea Logo" className="w-full h-full rounded-full shadow" />
+            <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="Morea Logo" className="w-full h-full rounded-full shadow" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-normal leading-relaxed">
             ចូលប្រើប្រាស់ប្រព័ន្ធ

@@ -105,17 +105,6 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
     }
   }, [selectedBaId, targetBaUser, currentUser]);
 
-  const visibleBaUsers = useMemo(() => {
-    return users.filter(u => {
-      if (!(u.type === 'BA Staff' || !u.type)) return false;
-      if (currentUser.type === 'Admin') return true;
-      if (currentUser.type === 'Manager') {
-        return (u.managerId || '').trim().toUpperCase() === currentUser.id.trim().toUpperCase();
-      }
-      return u.id.trim().toUpperCase() === currentUser.id.trim().toUpperCase();
-    });
-  }, [users, currentUser]);
-
   const hasAlreadySubmittedToday = useMemo(() => {
     if (!selectedBaId) return false;
     return salesOrders.some(
@@ -245,14 +234,9 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
   // Filtered History Orders
   const filteredOrders = useMemo(() => {
     return salesOrders.filter(order => {
-      // Role scope: BA sees only own records; Manager sees only BA under the same manager; Admin sees all.
+      // Role scope: if BA staff, only own orders
       if (currentUser.type === 'BA Staff') {
         if (order.baId.trim().toUpperCase() !== currentUser.id.trim().toUpperCase()) {
-          return false;
-        }
-      } else if (currentUser.type === 'Manager') {
-        const owner = users.find(u => u.id.trim().toUpperCase() === order.baId.trim().toUpperCase());
-        if (!owner || (owner.managerId || '').trim().toUpperCase() !== currentUser.id.trim().toUpperCase()) {
           return false;
         }
       }
@@ -277,7 +261,7 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
       }
       return true;
     });
-  }, [salesOrders, currentUser, users, historyBaFilter, historyDateFilter, historySearch]);
+  }, [salesOrders, currentUser, historyBaFilter, historyDateFilter, historySearch]);
 
   const historyTotalRevenue = useMemo(() => {
     return filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
@@ -397,7 +381,8 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
                     <option value="">-- ជ្រើសរើសឈ្មោះ BA --</option>
-                    {visibleBaUsers
+                    {users
+                      .filter(u => u.type === 'BA Staff' || !u.type)
                       .map(u => (
                         <option key={u.id} value={u.id}>
                           {u.name} ({u.id})
@@ -787,7 +772,8 @@ export const SalesOrderView: React.FC<SalesOrderViewProps> = ({
                   className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
                 >
                   <option value="ALL">គ្រប់ BA Staff</option>
-                  {visibleBaUsers
+                  {users
+                    .filter(u => u.type === 'BA Staff' || !u.type)
                     .map(u => (
                       <option key={u.id} value={u.id}>
                         {u.name} ({u.id})

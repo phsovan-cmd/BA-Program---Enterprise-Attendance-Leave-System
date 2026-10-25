@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Branding with Morea Icon */}
           <div className="flex items-center space-x-3 min-w-0">
             <img
-              src="/icon.svg"
+              src={`${import.meta.env.BASE_URL}icon.svg`}
               alt="Morea Logo"
               className="w-10 h-10 rounded-full shadow-md shadow-pink-500/20 ring-2 ring-pink-200 shrink-0"
             />

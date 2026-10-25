@@ -6,6 +6,6 @@
 4. Group តាម BA ID + Date និងប្រើ Set ដើម្បីមិនឱ្យ Badge ដូចគ្នាស្ទួននៅថ្ងៃតែមួយ ទោះ Submit មានច្រើន SKU។
 5. រក្សា `Refresh` នៅផ្ទាំង Stock Count Report ដើម្បីអាចទាញឡើងវិញបាន។
 
-**Installation:** Replace Frontend sources in Google AI Studio with the updated project. No Apps Script changes are required for this UI-only modification if the existing `get_stock_in` API already returns date, BA ID and note/source accurately.
+**Installation:** Build the updated project with `npm run build` and deploy the generated `dist/` folder to your static host. No Apps Script changes are required for this UI-only modification if the existing `get_stock_in` API already returns date, BA ID and note/source accurately.
 
 **Verification:** Project structure checked. Full React build and live Google Sheets sync were not executed here.

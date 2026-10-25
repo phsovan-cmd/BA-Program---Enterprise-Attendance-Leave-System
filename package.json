@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "morea-ba-program",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,6 @@
     "check:project": "node scripts/check-project.mjs"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/leaflet": "^1.9.22",
     "@vitejs/plugin-react": "^6.1.1",

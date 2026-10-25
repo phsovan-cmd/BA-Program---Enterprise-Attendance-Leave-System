@@ -8,135 +8,13 @@ const validAppsScriptUrl = (url: string) => /^https:\/\/script\.google\.com\/mac
 export const GOOGLE_SHEET_API_URL = validAppsScriptUrl(configuredApiUrl) ? configuredApiUrl : DEFAULT_GOOGLE_SHEET_API_URL;
 
 // Real baseline data matching the user's Google Sheet
-export const INITIAL_USERS: User[] = [
-  {
-    id: 'BA00001',
-    name: 'VN',
-    password: '1111',
-    location: '11.570000,104.890000',
-    startDate: '2026-10-19',
-    status: 'Active',
-    type: 'Admin',
-    managerId: '',
-  },
-  {
-    id: 'BA00002',
-    name: 'រ៉ាន អូន',
-    password: '963799230',
-    location: '11.58881983, 104.80320520',
-    startDate: '2026-10-21',
-    status: 'Active',
-    type: 'BA Staff',
-    managerId: 'DTPP1',
-  },
-  {
-    id: 'BA00006',
-    name: 'មួន សុភ័ក្រ្ត',
-    password: '87814487',
-    location: '11.54685900, 104.92557800',
-    startDate: '2026-10-21',
-    status: 'Active',
-    type: 'BA Staff',
-    managerId: 'DTPP3',
-  },
-  {
-    id: 'SM0003',
-    name: 'PP3',
-    password: '123',
-    location: '11.566452, 104.871013',
-    startDate: '2026-10-21',
-    status: 'Active',
-    type: 'Manager',
-    managerId: 'DTPP3',
-  },
-];
+export const INITIAL_USERS: User[] = [];
 
 export const INITIAL_LEAVES: LeaveRequest[] = [];
 
 export const INITIAL_ATTENDANCE: AttendanceRecord[] = [];
 
-export const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: 'PROD_PM0005',
-    productCode: 'PM0005',
-    name: 'Peter&Moré_Moisturizing Cream',
-    category: 'គ្រីមផ្តល់សំណើម (Cream)',
-    price: 18.0,
-    imageUrl: 'https://images.unsplash.com/photo-1556228722-d0b74b1e56b4?w=500&auto=format&fit=crop&q=60',
-    stockQty: 45,
-    initialStock: 45,
-    stockIn: 0,
-    totalSold: 0,
-    minAlertQty: 5,
-    isHot: true,
-  },
-  {
-    id: 'PROD_PM0006',
-    productCode: 'PM0006',
-    name: 'Peter&Moré_Whitening Essential Mask',
-    category: 'ម៉ាសបិទមុខ (Mask)',
-    price: 22.0,
-    imageUrl: 'https://images.unsplash.com/photo-1608248597359-00109919f2a0?w=500&auto=format&fit=crop&q=60',
-    stockQty: 30,
-    initialStock: 30,
-    stockIn: 0,
-    totalSold: 0,
-    minAlertQty: 5,
-    isHot: true,
-  },
-  {
-    id: 'PROD_PM0001',
-    productCode: 'PM0001',
-    name: 'Peter&Moré_Cleanser',
-    category: 'ហ្វូមលាងមុខ (Cleanser)',
-    price: 12.0,
-    imageUrl: 'https://images.unsplash.com/photo-1556228722-d0b74b1e56b4?w=500&auto=format&fit=crop&q=60',
-    stockQty: 50,
-    initialStock: 50,
-    stockIn: 0,
-    totalSold: 0,
-    minAlertQty: 5,
-  },
-  {
-    id: 'PROD_PM0002',
-    productCode: 'PM0002',
-    name: 'Peter&Moré_Toner',
-    category: 'ទឹកជូតស្បែកមុខ (Toner)',
-    price: 15.0,
-    imageUrl: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=500&auto=format&fit=crop&q=60',
-    stockQty: 40,
-    initialStock: 40,
-    stockIn: 0,
-    totalSold: 0,
-    minAlertQty: 5,
-  },
-  {
-    id: 'PROD_PM0003',
-    productCode: 'PM0003',
-    name: 'Peter&Moré_Sunscreen',
-    category: 'ឡេការពារកម្ដៅថ្ងៃ (Sunscreen)',
-    price: 16.5,
-    imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=60',
-    stockQty: 60,
-    initialStock: 60,
-    stockIn: 0,
-    totalSold: 0,
-    minAlertQty: 5,
-  },
-  {
-    id: 'PROD_PM0004',
-    productCode: 'PM0004',
-    name: 'Peter&Moré_Serum',
-    category: 'សេរ៉ូមបំប៉នមុខ (Serum)',
-    price: 25.0,
-    imageUrl: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&auto=format&fit=crop&q=60',
-    stockQty: 35,
-    initialStock: 35,
-    stockIn: 0,
-    totalSold: 0,
-    minAlertQty: 5,
-  },
-];
+export const INITIAL_PRODUCTS: Product[] = [];
 
 // LocalStorage Keys
 const STORAGE_KEYS = {
@@ -318,23 +196,11 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
-/** Client credentials with safe fallback for initial read and public queries */
-function credentials(): { userId: string; password: string; actorId: string; actorPassword: string } {
+/** Six-tab deployment: client credentials are used for protected queries. */
+function credentials() {
   const user = getCurrentSession();
-  if (user?.id && user.password) {
-    return {
-      userId: user.id,
-      password: user.password,
-      actorId: user.id,
-      actorPassword: user.password,
-    };
-  }
-  return {
-    userId: 'BA00001',
-    password: '1111',
-    actorId: 'BA00001',
-    actorPassword: '1111',
-  };
+  if (!user?.id || !user.password) throw new Error('Please log in first');
+  return { userId: user.id, password: user.password };
 }
 function query(type: string, extra: Record<string,string> = {}) {
   if (!GOOGLE_SHEET_API_URL) throw new Error('Set VITE_GOOGLE_SHEET_API_URL to the newly deployed Apps Script /exec URL');
@@ -348,32 +214,27 @@ function query(type: string, extra: Record<string,string> = {}) {
 }
 async function confirmedSubmission(payload: any, kind: string, id: string): Promise<void> {
   const auth = credentials();
+  let lastError = '';
 
-  // 1. Google Apps Script cross-origin POST (mode: no-cors)
-  try {
-    await fetchWithTimeout(
-      GOOGLE_SHEET_API_URL,
-      {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          ...payload,
-          userId: payload.userId || auth.userId,
-          password: payload.password || auth.password,
-          actorId: auth.userId,
-          actorPassword: auth.password,
-        }),
-      },
-      25000
-    );
-  } catch (err: any) {
-    console.error(`Network error sending ${kind} to Google Sheets:`, err);
-    throw new Error(`Failed to send ${kind} to Google Sheets: ${err?.message || 'Network error'}`);
-  }
+  // Google Apps Script cross-origin responses are opaque. Confirmation MUST be read back.
+  await fetchWithTimeout(
+    GOOGLE_SHEET_API_URL,
+    {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        ...payload,
+        userId: payload.userId || auth.userId,
+        password: payload.password || auth.password,
+        actorId: auth.userId,
+        actorPassword: auth.password,
+      }),
+    },
+    25000
+  );
 
-  // 2. Best-effort verification with submission_status
-  const delays = [500, 1000, 1500];
+  const delays = [500, 800, 1200, 1800, 2500, 3000];
   for (let attempt = 0; attempt < delays.length; attempt++) {
     await new Promise(resolve => setTimeout(resolve, delays[attempt]));
     try {
@@ -387,14 +248,15 @@ async function confirmedSubmission(payload: any, kind: string, id: string): Prom
           ...(payload.items?.length ? { expectedItems: String(payload.items.length) } : {}),
         }),
         {},
-        6000
+        12000
       );
       if (res.ok) {
         const obj = await res.json();
         if (obj.success && (obj.found || obj.complete)) return;
+        if (obj.error) lastError = obj.error;
       }
     } catch {
-      /* best-effort read, do not throw on unsupported status endpoints */
+      /* retry read, never resubmit a different ID */
     }
   }
 
@@ -418,14 +280,18 @@ async function confirmedSubmission(payload: any, kind: string, id: string): Prom
     }
   } catch {}
 
-  // Successful dispatch log
-  console.info(`Submission ${kind} (${id}) dispatched to Google Sheets.`);
+  throw new Error(
+    `Google Sheets could not confirm ${kind} (${id})${lastError ? ': ' + lastError : ''}. Check the deployment, API permissions, and corresponding report sheet before retrying with the same ID.`
+  );
 }
 export async function loginFromSheet(userId:string,password:string):Promise<User|null>{
   const res=await fetchWithTimeout(query('login',{userId,password}),{},15000);
   if(!res.ok)throw new Error('Login HTTP '+res.status);
   const data=await res.json();
-  if(!data.success || !data.user)return null;
+  if(!data.success || !data.user) {
+    if (/^Invalid credentials(?:\s|$)/i.test(String(data.error || ''))) return null;
+    throw new Error(String(data.error || 'Google Apps Script did not return a user.'));
+  }
   return {...data.user,password};
 }
 
@@ -678,15 +544,14 @@ export async function deleteUserFromSheet(userId: string): Promise<boolean> {
 export function getStoredProducts(): Product[] {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS) || '[]');
-    if (!Array.isArray(parsed)) return INITIAL_PRODUCTS;
+    if (!Array.isArray(parsed)) return [];
     const unique = new Map<string, Product>();
     for (const p of parsed) {
       const code = String(p?.productCode || '').trim().toUpperCase();
       if (code) unique.set(code, p);
     }
-    const result = [...unique.values()];
-    return result.length > 0 ? result : INITIAL_PRODUCTS;
-  } catch { return INITIAL_PRODUCTS; }
+    return [...unique.values()];
+  } catch { return []; }
 }
 
 export function saveStoredProducts(products: Product[]) {
@@ -799,9 +664,8 @@ export async function postSalesOrdersToSheet(
     const payload = {
       type: 'sales_order',
       action: 'sale_out',
-      sheet: 'Sale Out',
-      targetSheet: 'Sale Out',
-      reportSheet: 'Sale Out Report',
+      sheet: 'Sale Out Report',
+      targetSheet: 'Sale Out Report',
       order: {
         id: order.id,
         date: order.date,
@@ -845,9 +709,8 @@ export async function postStockInTransactionToSheet(
 
     const payload = {
       type: 'stock_in_transaction',
-      sheet: 'Stock In',
-      targetSheet: 'Stock In',
-      reportSheet: 'Stock In Report',
+      sheet: 'Stock In Report',
+      targetSheet: 'Stock In Report',
       action: 'stock_in',
       date: stockInEntry.date,
       timestamp: stockInEntry.timestamp,
@@ -925,21 +788,21 @@ export async function postProductListToSheet(
       body: JSON.stringify(payload),
     }, 25000);
 
-    // no-cors POST gives no readable response in browser: verify against fresh read if available
-    for (let attempt = 0; attempt < 3; attempt++) {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      try {
-        const fresh = await syncProductsFromSheet();
-        if (fresh.success && fresh.data) {
-          const byCode = new Map(fresh.data.map(p => [p.productCode.toUpperCase(), p]));
-          const confirmed = products.every(p => byCode.has(String(p.productCode).trim().toUpperCase()));
-          if (confirmed) return { success: true };
-        }
-      } catch {}
+    // no-cors POST gives no readable success status: verify the actual spreadsheet.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 700));
+      const fresh = await syncProductsFromSheet();
+      if (!fresh.success || !fresh.data) continue;
+      const byCode = new Map(fresh.data.map(p => [p.productCode.toUpperCase(), p]));
+      const confirmed = products.length === fresh.data.length && products.every(p => {
+        const actual = byCode.get(String(p.productCode).trim().toUpperCase());
+        return actual && actual.name.trim() === p.name.trim()
+          && (actual.category || 'ទូទៅ').trim() === String(p.category || 'ទូទៅ').trim()
+          && Number(actual.price) === Number(p.price);
+      });
+      if (confirmed) return { success: true };
     }
-    // Ensure products are preserved in local storage and return success
-    saveStoredProducts(products);
-    return { success: true };
+    throw new Error('Product List update was not confirmed in Google Sheets. Check deployment URL, Admin access and script logs.');
   } catch (e: any) {
     console.error('Failed to post product list to sheet:', e);
     return { success: false, error: e?.message || 'Failed to sync product list to Google Sheets' };

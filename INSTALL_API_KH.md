@@ -4,7 +4,7 @@
 2. ប្រាកដថា Sheets ទាំង 6 មាន Headers ដូច `google-apps-script/Code.gs`។ បើ Headers មិនត្រូវ កុំ Run Migration លើ Data ដើម។
 3. ក្នុង BA Control → Extensions → Apps Script ជំនួស Code ដោយ `google-apps-script/Code.gs`។ Run `verifyConnection` និង `setupSixReports` (លើ Copy ជាមុន)។
 4. Deploy → Manage deployments → Edit → New version → Deploy។ អនុញ្ញាត Web App តាម Access Policy របស់អង្គភាព។
-5. នៅ AI Studio ដាក់ `VITE_GOOGLE_SHEET_API_URL` ជា deployed `/exec` URL ពិត។ Project នេះមាន fallback URL បើ `.env` ខូច។
+5. នៅ `.env.local` សម្រាប់ build ក្នុងម៉ាស៊ីន ឬ Hosting build settings សម្រាប់ deploy ដាក់ `VITE_GOOGLE_SHEET_API_URL` ជា deployed `/exec` URL ពិត។ Project នេះមាន fallback URL បើ `.env` ខូច។
 6. បើក `<exec-url>?type=api_health`។ រំពឹង JSON `success:true` និង version `six-tabs-stable-2026-10-23-r4`។ បើ version ខុស គឺ deployment ចាស់។
 7. សាកល្បង Login, GET Products, Stock In, Sale Out, Check In/Out, Leave និង `submission_status` លើ Test BA / Test SKU តែប៉ុណ្ណោះ។
 8. Submit ជាមួយ Transaction ID / Order ID ដដែលពេល Retry។ កុំបង្កើត ID ថ្មីបើ Status មិនច្បាស់។
