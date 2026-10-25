@@ -399,7 +399,7 @@ export async function syncAttendanceFromSheet(): Promise<{ success: boolean; dat
 /**
  * Sync Products from Google Sheet "Product List"
  */
-export async function getBaActualStock(userId: string): Promise<{success:boolean;hasApprovedCount?:boolean;stock?:Record<string,number>;openingStock?:Record<string,number>;stockIn?:Record<string,number>;stockOut?:Record<string,number>;error?:string;approvedAt?:string;submittedStock?:Record<string,number>;submittedAt?:string}> {
+export async function getBaActualStock(userId: string): Promise<{success:boolean;hasApprovedCount?:boolean;stock?:Record<string,number>;openingStock?:Record<string,number>;stockIn?:Record<string,number>;stockOut?:Record<string,number>;saleOut?:Record<string,number>;error?:string;approvedAt?:string;submittedStock?:Record<string,number>;submittedAt?:string}> {
   try {
     let res = await fetchWithTimeout(query('get_ba_actual_stock',{...credentials(),baId:userId}));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -498,8 +498,9 @@ export async function checkBAListApiVersion(): Promise<void> {
   const response = await fetchWithTimeout(`${GOOGLE_SHEET_API_URL}?type=ba_list_api_health&_=${Date.now()}`);
   if (!response.ok) throw new Error(`Apps Script health HTTP ${response.status}`);
   const result = await response.json();
-  if (!result.success || !String(result.version || '').startsWith('wide-')) {
-    throw new Error('Google Apps Script deployment is outdated. Deploy the NEW Code.gs version.');
+  const compatibleVersions = ['wide-clean-v3-20261024', 'wide-clean-v4-20261025'];
+  if (!result.success || !compatibleVersions.includes(String(result.version || ''))) {
+    throw new Error('Google Apps Script version does not match this app. Deploy the matching google-apps-script/Code.gs version.');
   }
 }
 

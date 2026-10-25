@@ -281,12 +281,13 @@ export default function App() {
             setSubmittedStock(count.submittedStock || {});
             setSubmittedAt(count.submittedAt || '');
             const bySKU = count.stock || {};
+            const stockOut = count.stockOut || count.saleOut;
             const scoped = resProducts.data.map(p => ({
               ...p,
               stockQty: bySKU[p.productCode.trim().toUpperCase()] ?? 0,
-              initialStock: count.openingStock?.[p.productCode.trim().toUpperCase()] ?? 0,
+              initialStock: count.openingStock?.[p.productCode.trim().toUpperCase()] ?? p.initialStock ?? 0,
               stockIn: count.stockIn?.[p.productCode.trim().toUpperCase()] ?? 0,
-              totalSold: count.stockOut?.[p.productCode.trim().toUpperCase()] ?? 0,
+              totalSold: stockOut?.[p.productCode.trim().toUpperCase()] ?? p.totalSold ?? 0,
             }));
             setProducts(scoped);
             if (showFeedback) showToast(count.hasApprovedCount

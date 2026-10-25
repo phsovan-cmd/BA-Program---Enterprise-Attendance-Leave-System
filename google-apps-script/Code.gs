@@ -1,6 +1,6 @@
 /**
  * BA Program — Google Sheets Backend (Clean Wide Daily Reports, No JSON Columns)
- * Version: wide-clean-v3-20261024
+ * Version: wide-clean-v4-20261025
  *
  * All 6 Sheets:
  * 1. BA List: ['BA ID', 'BA Name', 'Password', 'Location', 'Start Date', 'Status', 'Type', 'Manager ID']
@@ -21,7 +21,7 @@ const CFG = Object.freeze({
   SALES: 'Sale Out Report',
   ATT: 'BA Attendance Report',
   LEAVE: 'BA Leave Report',
-  VERSION: 'wide-clean-v3-20261024'
+  VERSION: 'wide-clean-v4-20261025'
 });
 
 const HEADERS = {
@@ -910,8 +910,9 @@ function getBAStock_(d) {
     stock,
     stockByCode: stock,
     stockIn: incoming,
+    stockOut: sold,
     saleOut: sold,
-    hasApprovedCount: true
+    hasApprovedCount: Object.keys(incoming).length > 0
   };
 }
 
