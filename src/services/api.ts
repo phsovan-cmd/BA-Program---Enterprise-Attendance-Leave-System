@@ -498,7 +498,7 @@ export async function checkBAListApiVersion(): Promise<void> {
   const response = await fetchWithTimeout(`${GOOGLE_SHEET_API_URL}?type=ba_list_api_health&_=${Date.now()}`);
   if (!response.ok) throw new Error(`Apps Script health HTTP ${response.status}`);
   const result = await response.json();
-  const compatibleVersions = ['wide-clean-v3-20261024', 'wide-clean-v4-20261025'];
+  const compatibleVersions = ['wide-clean-v3-20261024', 'wide-clean-v4-20261025', 'wide-clean-v5-20261025'];
   if (!result.success || !compatibleVersions.includes(String(result.version || ''))) {
     throw new Error('Google Apps Script version does not match this app. Deploy the matching google-apps-script/Code.gs version.');
   }
@@ -831,6 +831,9 @@ export async function syncSalesFromSheet(): Promise<{success:boolean;data?:Sales
     if(!res.ok) throw new Error(`Sale Out Report HTTP ${res.status}`);
     const result=await res.json();
     if(!result.success || !Array.isArray(result.items)) throw new Error(result.error || 'Sale Out Report unavailable');
+    if(result.version !== 'wide-clean-v5-20261025') {
+      throw new Error('Google Apps Script is missing the sales-total sync update. Deploy google-apps-script/Code.gs as a new version.');
+    }
     const grouped=new Map<string,SalesOrder>();
     for(const r of result.items) {
       const baId=String(r.baId||'').trim();

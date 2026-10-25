@@ -1,6 +1,6 @@
 /**
  * BA Program — Google Sheets Backend (Clean Wide Daily Reports, No JSON Columns)
- * Version: wide-clean-v4-20261025
+ * Version: wide-clean-v5-20261025
  *
  * All 6 Sheets:
  * 1. BA List: ['BA ID', 'BA Name', 'Password', 'Location', 'Start Date', 'Status', 'Type', 'Manager ID']
@@ -21,7 +21,7 @@ const CFG = Object.freeze({
   SALES: 'Sale Out Report',
   ATT: 'BA Attendance Report',
   LEAVE: 'BA Leave Report',
-  VERSION: 'wide-clean-v4-20261025'
+  VERSION: 'wide-clean-v5-20261025'
 });
 
 const HEADERS = {
@@ -794,7 +794,7 @@ function getSales_(d) {
   const isMgr = ['ADMIN', 'MANAGER', 'LEADER', 'SUPERVISOR'].some(r => key_(me.role).includes(r));
   const sh = ensureWide_(CFG.SALES);
   const lastRow = sh.getLastRow();
-  if (lastRow < 2) return { success: true, items: [] };
+  if (lastRow < 2) return { success: true, version: CFG.VERSION, items: [] };
 
   const lastCol = sh.getLastColumn();
   const headerRow = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(str_);
@@ -861,7 +861,7 @@ function getSales_(d) {
     }
   });
 
-  return { success: true, items };
+  return { success: true, version: CFG.VERSION, items };
 }
 
 /** Calculate BA On-Hand Stock from horizontal reports */
